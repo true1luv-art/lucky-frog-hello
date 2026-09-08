@@ -36,6 +36,12 @@ const BUILDING_SFX: Record<string, string> = {
   barn: "sfx_barn",
 };
 
+const NPC_IDLE_FRAME_RATE: Record<string, number> = {
+  npc_rancher: 6,
+  npc_trader: 6,
+  npc_blacksmith: 10,
+};
+
 /** Owns world actor presentation, modal range tracking, and world-level UI events. */
 export class WorldInteractionSystem {
   private activeBuilding: BuildingZoneNode | null = null;
@@ -152,7 +158,7 @@ export class WorldInteractionSystem {
             this.scene.anims.create({
               key: animKey,
               frames: this.scene.anims.generateFrameNumbers(customTexture, { start: 0, end: frameTotal - 1 }),
-              frameRate: 10,
+              frameRate: NPC_IDLE_FRAME_RATE[customTexture] ?? 6,
               repeat: -1,
             });
           }

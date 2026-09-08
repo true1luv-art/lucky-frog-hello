@@ -44,7 +44,7 @@ const ANIMAL_SPEED: Record<AnimalKind, number> = { chicken: 16, cow: 10, sheep: 
 const ANIMAL_MAX: Record<AnimalKind, number> = { chicken: 10, cow: 5, sheep: 5 };
 
 interface MarkerEntry extends EditorMarker {
-  sprite: Phaser.GameObjects.Image | Phaser.GameObjects.Rectangle;
+  sprite: Phaser.GameObjects.Image | Phaser.GameObjects.Sprite | Phaser.GameObjects.Rectangle;
   outline: Phaser.GameObjects.Rectangle;
 }
 
@@ -159,10 +159,29 @@ export class EditorScene extends Phaser.Scene {
       const px = x * TILE;
       const py = y * TILE;
       const color = GROUP_COLOR[group];
-      const sprite = texture && this.textures.exists(texture)
-        ? this.add.image(px, py, texture).setOrigin(0, 0).setDisplaySize(w * TILE, h * TILE)
-        : this.add.rectangle(px, py, w * TILE, h * TILE, color, 0.5).setOrigin(0, 0);
+      const npcTexture = texture ?? "";
+      const animatedNpc = group === "npcs" && npcTexture.startsWith("npc_") && this.textures.exists(npcTexture);
+      const sprite = animatedNpc
+        ? this.add.sprite(px, py, npcTexture, 0).setOrigin(0, 0).setDisplaySize(w * TILE, h * TILE)
+        : texture && this.textures.exists(texture)
+          ? this.add.image(px, py, texture).setOrigin(0, 0).setDisplaySize(w * TILE, h * TILE)
+          : this.add.rectangle(px, py, w * TILE, h * TILE, color, 0.5).setOrigin(0, 0);
       sprite.setDepth(MARKER_DEPTH);
+      if (sprite instanceof Phaser.GameObjects.Sprite && texture) {
+        const frameTotal = this.textures.get(texture).frameTotal - 1;
+        if (frameTotal > 1) {
+          const animKey = `editor_${texture}_idle`;
+          if (!this.anims.exists(animKey)) {
+            this.anims.create({
+              key: animKey,
+              frames: this.anims.generateFrameNumbers(texture, { start: 0, end: frameTotal - 1 }),
+              frameRate: texture === "npc_blacksmith" ? 10 : 6,
+              repeat: -1,
+            });
+          }
+          sprite.play(animKey, true);
+        }
+      }
 
       const outline = this.add
         .rectangle(px, py, w * TILE, h * TILE)
@@ -209,7 +228,7 @@ export class EditorScene extends Phaser.Scene {
     const px = entry.x * TILE;
     const py = entry.y * TILE;
     entry.sprite.setPosition(px, py);
-    if (entry.sprite instanceof Phaser.GameObjects.Image) {
+    if (entry.sprite instanceof Phaser.GameObjects.Image || entry.sprite instanceof Phaser.GameObjects.Sprite) {
       entry.sprite.setDisplaySize(entry.w * TILE, entry.h * TILE);
     } else {
       entry.sprite.setSize(entry.w * TILE, entry.h * TILE);
