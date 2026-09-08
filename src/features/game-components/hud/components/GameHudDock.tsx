@@ -111,7 +111,7 @@ export function GameHudDock({ wallet }: { wallet?: string }) {
               <img src={heart} alt="" className="h-3.5 w-3.5 shrink-0 pixelated sm:h-4 sm:w-4" />
               <div className="h-3 min-w-0 flex-1 overflow-hidden border-2 border-brown-700 bg-foreground/60 p-0.5 sm:h-4">
                 <div
-                  className="h-full bg-red-500 transition-[width] duration-500"
+                  className="h-full bg-rose transition-[width] duration-500"
                   style={{ width: "100%" }}
                 />
               </div>
