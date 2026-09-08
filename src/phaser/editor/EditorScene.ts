@@ -123,7 +123,7 @@ export class EditorScene extends Phaser.Scene {
         BARN_ZONE.height * TILE,
       )
       .setOrigin(0, 0)
-      .setStrokeStyle(1, 0xfacc15, 0.9)
+      .setStrokeStyle(0.3, 0xfacc15, 0.9)
       .setDepth(GRID_DEPTH + 1);
 
     this.buildMarkers();
@@ -167,7 +167,7 @@ export class EditorScene extends Phaser.Scene {
       const outline = this.add
         .rectangle(px, py, w * TILE, h * TILE)
         .setOrigin(0, 0)
-        .setStrokeStyle(1, color, 0.85)
+        .setStrokeStyle(0.3, color, 0.85)
         .setDepth(OUTLINE_DEPTH);
 
       const entry: MarkerEntry = {
@@ -221,7 +221,7 @@ export class EditorScene extends Phaser.Scene {
     this.selectedKey = key;
     for (const entry of this.markers) {
       const active = entry.key === key;
-      entry.outline.setStrokeStyle(active ? 2 : 1, active ? 0xffffff : GROUP_COLOR[entry.group], active ? 1 : 0.85);
+      entry.outline.setStrokeStyle(active ? 0.6 : 0.3, active ? 0xffffff : GROUP_COLOR[entry.group], active ? 1 : 0.85);
     }
     const found = this.markers.find((m) => m.key === key);
     editorBus.emit("select", { marker: found ? this.plain(found) : null });
