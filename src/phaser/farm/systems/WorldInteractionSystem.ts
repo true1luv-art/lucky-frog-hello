@@ -23,7 +23,6 @@ const BUILDING_TEXTURE: Record<string, string> = {
   firepit_2: "building_firepit",
   blacksmith: "building_blacksmith",
   bank: "building_market",
-  summoning_shrine: "building_summoning_shrine",
   cabin: "building_cabin",
 };
 

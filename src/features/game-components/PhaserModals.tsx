@@ -18,7 +18,6 @@ import { KitchenModal }                    from "@/features/game-components/kitc
 import { BlacksmithModal }                 from "@/features/game-components/blacksmith/BlacksmithModal";
 import { HouseModal }                      from "@/features/game-components/house/HouseModal";
 import { BarnModal }                       from "@/features/game-components/animals/BarnModal";
-import { WithdrawModal }                   from "@/features/game-components/shrine/WithdrawModal";
 import { MarketplaceModal }               from "@/features/game-components/marketplace/MarketplaceModal";
 
 // ── Game modal keys ──────────────────────────────────────────────────────────
@@ -102,7 +101,6 @@ interface PhaserModalsProps {
 export function PhaserModals({ wallet }: PhaserModalsProps) {
   const [activeBuildingKey, setActiveBuildingKey] = useState<BuildingKey | null>(null);
   const [barnOpen,          setBarnOpen]          = useState(false);
-  const [shrineOpen,        setShrineOpen]        = useState(false);
   const [traderOpen,        setTraderOpen]        = useState(false);
   const [comingSoonArea,    setComingSoonArea]    = useState<string | null>(null);
   const { activeModal, closeModal } = useGameModalState();
@@ -131,11 +129,6 @@ export function PhaserModals({ wallet }: PhaserModalsProps) {
     window.addEventListener("phaser-trader-open",  openTrader);
     window.addEventListener("phaser-trader-close", closeTrader);
 
-    const openShrine  = () => setShrineOpen(true);
-    const closeShrine = () => setShrineOpen(false);
-    window.addEventListener("phaser-summoning_shrine-open",  openShrine);
-    window.addEventListener("phaser-summoning_shrine-close", closeShrine);
-
     const onComingSoon = (e: Event) => {
       const area = (e as CustomEvent<{ area: string }>).detail?.area ?? "Area";
       setComingSoonArea(area);
@@ -148,8 +141,6 @@ export function PhaserModals({ wallet }: PhaserModalsProps) {
       window.removeEventListener("phaser-barn-close",              closeBarn);
       window.removeEventListener("phaser-trader-open",             openTrader);
       window.removeEventListener("phaser-trader-close",            closeTrader);
-      window.removeEventListener("phaser-summoning_shrine-open",   openShrine);
-      window.removeEventListener("phaser-summoning_shrine-close",  closeShrine);
       window.removeEventListener("phaser-coming-soon",             onComingSoon);
     };
   }, []);
@@ -195,12 +186,6 @@ export function PhaserModals({ wallet }: PhaserModalsProps) {
         open={activeModal === "house"}
         onClose={closeModal}
         wallet={wallet}
-      />
-
-      {/* Shrine — withdraw coins to $LFRG */}
-      <WithdrawModal
-        show={shrineOpen}
-        onClose={() => setShrineOpen(false)}
       />
 
       {/* NPC modals */}

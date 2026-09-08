@@ -26,10 +26,6 @@ export interface BuildingConfig {
 
 export const BUILDING_CONFIG: Record<string, BuildingConfig> = {
   // ── Farm buildings ─────────────────────────────────────────────────────────────
-  summoning_shrine: {
-    displayName: "Summoning Shrine",
-    enabled: true,
-  },
   hall_of_fame: {
     displayName: "Hall of Fame",
     enabled: false,

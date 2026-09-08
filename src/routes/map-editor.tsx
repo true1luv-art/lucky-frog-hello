@@ -49,7 +49,6 @@ const BUILDING_SPRITES: Record<string, string> = {
   blacksmith: "/assets/buildings/blacksmith_building.png",
   bank: "/assets/buildings/tailor.gif",
   wishing_well: "/assets/buildings/wishing_well.png",
-  summoning_shrine: "/assets/buildings/hatchery.png",
   cabin: "/assets/buildings/cabin.png",
 };
 
