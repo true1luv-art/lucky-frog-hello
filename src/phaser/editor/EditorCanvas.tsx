@@ -58,7 +58,6 @@ export default function EditorCanvas() {
   const [selected, setSelected] = useState<EditorMarker | null>(null);
   const [camera, setCamera] = useState({ zoom: 4, tileX: 0, tileY: 0 });
   const [counts, setCounts] = useState<Record<AnimalKind, number>>({ chicken: 0, cow: 0, sheep: 0 });
-  const [walking, setWalking] = useState(true);
   const [grid, setGrid] = useState(true);
 
   const [drawer, setDrawer] = useState<Drawer | null>(null);
@@ -247,16 +246,6 @@ export default function EditorCanvas() {
                 </div>
               ))}
               <div className="flex gap-1">
-                <button
-                  type="button"
-                  className={button}
-                  onClick={() => {
-                    setWalking(!walking);
-                    editorBus.emit("cmd:animal-walk", { walking: !walking });
-                  }}
-                >
-                  {walking ? "Pause walk" : "Resume walk"}
-                </button>
                 <button type="button" className={button} onClick={() => editorBus.emit("cmd:animal-clear", {})}>
                   Clear
                 </button>

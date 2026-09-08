@@ -65,7 +65,7 @@ interface EditorAnimal {
 export class EditorScene extends Phaser.Scene {
   private markers: MarkerEntry[] = [];
   private animals: EditorAnimal[] = [];
-  private grid?: Phaser.GameObjects.Grid;
+  private grid?: Phaser.GameObjects.Graphics;
   private ranchOutline?: Phaser.GameObjects.Rectangle;
   private selectedKey: string | null = null;
   private dragKey: string | null = null;
@@ -105,10 +105,15 @@ export class EditorScene extends Phaser.Scene {
     this.cameras.main.setZoom(GAME_CONFIG.ZOOM);
     this.cameras.main.centerOn(worldW / 2, worldH / 2);
 
-    this.grid = this.add
-      .grid(0, 0, worldW, worldH, TILE, TILE, undefined, 0, 0xffffff, 0.12)
-      .setOrigin(0, 0)
-      .setDepth(GRID_DEPTH);
+    // Sub-thin grid lines (fractional world px so they stay hairline at 4x zoom)
+    this.grid = this.add.graphics().setDepth(GRID_DEPTH);
+    this.grid.lineStyle(0.3, 0xffffff, 0.35);
+    for (let x = 0; x <= worldW; x += TILE) {
+      this.grid.lineBetween(x, 0, x, worldH);
+    }
+    for (let y = 0; y <= worldH; y += TILE) {
+      this.grid.lineBetween(0, y, worldW, y);
+    }
 
     this.ranchOutline = this.add
       .rectangle(
@@ -361,18 +366,6 @@ export class EditorScene extends Phaser.Scene {
       editorBus.on("cmd:animal-add", ({ kind }) => this.spawnAnimal(kind)),
       editorBus.on("cmd:animal-remove", ({ kind }) => this.removeAnimal(kind)),
       editorBus.on("cmd:animal-clear", () => this.clearAnimals()),
-      editorBus.on("cmd:animal-walk", ({ walking }) => {
-        this.animalsWalking = walking;
-        this.animals.forEach((animal) => {
-          if (walking) {
-            this.scheduleWalk(animal);
-          } else {
-            animal.timer?.remove();
-            this.tweens.killTweensOf(animal.sprite);
-            animal.sprite.anims.pause();
-          }
-        });
-      }),
     );
   }
 
