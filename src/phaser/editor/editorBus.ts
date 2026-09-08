@@ -37,7 +37,6 @@ export interface EditorEvents {
   "cmd:focus": { key: string };
   "cmd:zoom": { zoom: number };
   "cmd:grid": { show: boolean };
-  "cmd:labels": { show: boolean };
   "cmd:reset": Record<string, never>;
   "cmd:animal-add": { kind: AnimalKind };
   "cmd:animal-remove": { kind: AnimalKind };

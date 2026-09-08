@@ -46,7 +46,6 @@ const ANIMAL_MAX: Record<AnimalKind, number> = { chicken: 10, cow: 5, sheep: 5 }
 interface MarkerEntry extends EditorMarker {
   sprite: Phaser.GameObjects.Image | Phaser.GameObjects.Rectangle;
   outline: Phaser.GameObjects.Rectangle;
-  label: Phaser.GameObjects.Text;
 }
 
 interface EditorAnimal {
@@ -71,7 +70,6 @@ export class EditorScene extends Phaser.Scene {
   private selectedKey: string | null = null;
   private dragKey: string | null = null;
   private dragOffset = { x: 0, y: 0 };
-  private showLabels = true;
   private animalsWalking = true;
   private mapW = 40;
   private mapH = 40;
@@ -152,7 +150,6 @@ export class EditorScene extends Phaser.Scene {
       w: number,
       h: number,
       texture?: string,
-      label?: string,
     ) => {
       const px = x * TILE;
       const py = y * TILE;
@@ -168,18 +165,6 @@ export class EditorScene extends Phaser.Scene {
         .setStrokeStyle(1, color, 0.85)
         .setDepth(OUTLINE_DEPTH);
 
-      const text = this.add
-        .text(px + (w * TILE) / 2, py - 4, label ?? id, {
-          fontFamily: "monospace",
-          fontSize: "6px",
-          color: "#ffffff",
-          backgroundColor: "#00000099",
-          padding: { x: 1, y: 0 },
-        })
-        .setOrigin(0.5, 1)
-        .setDepth(OUTLINE_DEPTH + 1)
-        .setVisible(this.showLabels);
-
       const entry: MarkerEntry = {
         key: `${group}:${id}`,
         group,
@@ -190,7 +175,6 @@ export class EditorScene extends Phaser.Scene {
         h,
         sprite,
         outline,
-        label: text,
       };
       sprite.setInteractive({ useHandCursor: true });
       sprite.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
@@ -205,14 +189,14 @@ export class EditorScene extends Phaser.Scene {
       this.markers.push(entry);
     };
 
-    TREE_POSITIONS.forEach((t) => add("trees", t.id, t.x, t.y, 2, 2, "tree_node", t.id));
-    STONE_POSITIONS.forEach((s) => add("stones", s.id, s.x, s.y, 2, 2, "stone_rock", s.id));
-    PLOT_POSITIONS.forEach((p) => add("plots", p.id, p.x, p.y, 1, 1, "plot_soil", p.id));
+    TREE_POSITIONS.forEach((t) => add("trees", t.id, t.x, t.y, 2, 2, "tree_node"));
+    STONE_POSITIONS.forEach((s) => add("stones", s.id, s.x, s.y, 2, 2, "stone_rock"));
+    PLOT_POSITIONS.forEach((p) => add("plots", p.id, p.x, p.y, 1, 1, "plot_soil"));
     BUILDING_POSITIONS.forEach((b) =>
-      add("buildings", b.type, b.x, b.y, b.width, b.height, BUILDING_TEXTURE[b.type], b.type),
+      add("buildings", b.type, b.x, b.y, b.width, b.height, BUILDING_TEXTURE[b.type]),
     );
     NPC_POSITIONS.forEach((n) =>
-      add("npcs", n.id, n.x, n.y, n.width, n.height, "icon_player", n.name ?? n.id),
+      add("npcs", n.id, n.x, n.y, n.width, n.height, "icon_player"),
     );
   }
 
@@ -226,7 +210,6 @@ export class EditorScene extends Phaser.Scene {
       entry.sprite.setSize(entry.w * TILE, entry.h * TILE);
     }
     entry.outline.setPosition(px, py).setSize(entry.w * TILE, entry.h * TILE);
-    entry.label.setPosition(px + (entry.w * TILE) / 2, py - 4);
   }
 
   private select(key: string | null): void {
@@ -234,7 +217,6 @@ export class EditorScene extends Phaser.Scene {
     for (const entry of this.markers) {
       const active = entry.key === key;
       entry.outline.setStrokeStyle(active ? 2 : 1, active ? 0xffffff : GROUP_COLOR[entry.group], active ? 1 : 0.85);
-      entry.label.setVisible(this.showLabels || active);
     }
     const found = this.markers.find((m) => m.key === key);
     editorBus.emit("select", { marker: found ? this.plain(found) : null });
@@ -366,15 +348,10 @@ export class EditorScene extends Phaser.Scene {
         this.cameras.main.setZoom(Phaser.Math.Clamp(zoom, 1, 10)),
       ),
       editorBus.on("cmd:grid", ({ show }) => this.grid?.setVisible(show)),
-      editorBus.on("cmd:labels", ({ show }) => {
-        this.showLabels = show;
-        this.markers.forEach((m) => m.label.setVisible(show || m.key === this.selectedKey));
-      }),
       editorBus.on("cmd:reset", () => {
         this.markers.forEach((m) => {
           m.sprite.destroy();
           m.outline.destroy();
-          m.label.destroy();
         });
         this.markers = [];
         this.buildMarkers();
