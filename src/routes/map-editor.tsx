@@ -118,8 +118,10 @@ function MapEditor() {
   const [zoom, setZoom] = useState(2);
   const [drawerOpen, setDrawerOpen] = useState(true);
   const [showGrid, setShowGrid] = useState(true);
+  const [copied, setCopied] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
+  const dragOff = useRef({ dx: 0, dy: 0 });
 
   const PX = PX_BASE * zoom;
 
