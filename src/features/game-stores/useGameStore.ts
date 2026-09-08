@@ -33,6 +33,7 @@ import type { GameAction, GameEvent } from "@/features/events";
 import { processGameEvent } from "@/features/events";
 import { INITIAL_SKILLS } from "@/features/types/gameplay/skills";
 import { createInitialEquipment } from "@/features/types/gameplay/equipment";
+import { INITIAL_HP } from "@/features/game/hp";
 
 // ---------------------------------------------------------------------------
 // Initial state — used as the default store state and the reset target
