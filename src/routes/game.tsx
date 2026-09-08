@@ -44,7 +44,7 @@ function GamePage() {
 
   useEffect(() => {
     const unsubscribe = useSession.persist.onFinishHydration(() => setHydrated(true));
-    void useSession.persist.rehydrate().then(() => setHydrated(true));
+    void Promise.resolve(useSession.persist.rehydrate()).then(() => setHydrated(true));
     return unsubscribe;
   }, []);
 
