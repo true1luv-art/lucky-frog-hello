@@ -23,6 +23,8 @@ export const Route = createFileRoute("/map-editor")({
 });
 
 const TILE = 16;
+/** Match the in-game camera zoom (GAME_CONFIG.ZOOM). */
+const GAME_ZOOM = 4;
 
 type Group = "trees" | "stones" | "plots" | "buildings" | "npcs";
 
@@ -100,15 +102,30 @@ function MapEditor() {
   const [showJson, setShowJson] = useState(false);
   const [copied, setCopied] = useState(false);
   const [viewport, setViewport] = useState({ w: 1280, h: 720 });
+  const [zoom, setZoom] = useState(GAME_ZOOM);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
+  const stageRef = useRef<HTMLDivElement | null>(null);
   const dragOff = useRef({ dx: 0, dy: 0 });
+  const panRef = useRef<{ x: number; y: number; ox: number; oy: number } | null>(null);
 
-  // Full-screen fit, exactly like the game canvas: the whole map is always visible.
-  const PX = useMemo(() => {
-    const fit = Math.min(viewport.w / (mapSize.w * TILE), viewport.h / (mapSize.h * TILE));
-    return TILE * fit;
-  }, [viewport, mapSize]);
+  // Same scale as the game camera: 16px tiles rendered at zoom×.
+  const PX = TILE * zoom;
+  const mapW = mapSize.w * PX;
+  const mapH = mapSize.h * PX;
+
+  const clampOffset = useCallback(
+    (o: { x: number; y: number }, w: number, h: number) => ({
+      x: w <= viewport.w ? (viewport.w - w) / 2 : Math.min(0, Math.max(viewport.w - w, o.x)),
+      y: h <= viewport.h ? (viewport.h - h) / 2 : Math.min(0, Math.max(viewport.h - h, o.y)),
+    }),
+    [viewport]
+  );
+
+  useEffect(() => {
+    setOffset((o) => clampOffset(o, mapW, mapH));
+  }, [clampOffset, mapW, mapH]);
 
   useEffect(() => {
     const onResize = () => setViewport({ w: window.innerWidth, h: window.innerHeight });
@@ -116,6 +133,31 @@ function MapEditor() {
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
+
+  // Wheel = zoom around the cursor (non-passive so the page never scrolls).
+  useEffect(() => {
+    const el = stageRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 100 : 1);
+      setZoom((z: number) => {
+        const next = Math.min(8, Math.max(1, z * Math.exp(-dy * 0.0015)));
+        const k = next / z;
+        const rect = el.getBoundingClientRect();
+        const px = e.clientX - rect.left;
+        const py = e.clientY - rect.top;
+        setOffset((o) => clampOffset(
+          { x: px - (px - o.x) * k, y: py - (py - o.y) * k },
+          mapSize.w * TILE * next,
+          mapSize.h * TILE * next,
+        ));
+        return next;
+      });
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, [clampOffset, mapSize]);
 
   useEffect(() => {
     let cancelled = false;
@@ -227,12 +269,34 @@ function MapEditor() {
 
   return (
     <main className="relative h-screen w-screen overflow-hidden bg-black text-foreground">
-      {/* Full-screen map, fitted like the game view */}
-      <div className="absolute inset-0 flex items-center justify-center">
+      {/* Full-screen map at game zoom; middle-mouse drag pans, wheel zooms */}
+      <div
+        ref={stageRef}
+        className="absolute inset-0 overflow-hidden"
+        style={{ touchAction: "none", cursor: panRef.current ? "grabbing" : "default" }}
+        onPointerDown={(e) => {
+          if (e.button === 1) {
+            e.preventDefault();
+            panRef.current = { x: e.clientX, y: e.clientY, ox: offset.x, oy: offset.y };
+            (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+          }
+        }}
+        onPointerMove={(e) => {
+          const p = panRef.current;
+          if (!p) return;
+          setOffset(clampOffset({ x: p.ox + (e.clientX - p.x), y: p.oy + (e.clientY - p.y) }, mapW, mapH));
+        }}
+        onPointerUp={() => {
+          panRef.current = null;
+        }}
+        onPointerCancel={() => {
+          panRef.current = null;
+        }}
+      >
         <div
           ref={wrapRef}
-          className="relative"
-          style={{ width: mapSize.w * PX, height: mapSize.h * PX }}
+          className="absolute left-0 top-0"
+          style={{ width: mapW, height: mapH, transform: `translate(${offset.x}px, ${offset.y}px)` }}
           onPointerMove={onPointerMove}
           onPointerUp={() => setDragKey(null)}
           onPointerLeave={() => setDragKey(null)}
