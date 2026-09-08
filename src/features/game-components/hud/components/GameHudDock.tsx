@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import Decimal from "decimal.js-light";
 
 import { Context } from "@/context/GameContext";
@@ -44,6 +44,13 @@ export function GameHudDock({ wallet }: { wallet?: string }) {
   const [marketplaceOpen, setMarketplaceOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [shortcuts, setShortcuts] = useState(() => getShortcuts());
+
+  // Equipping from the inventory, market or a slot rewrites the cached
+  // shortcut list — re-read it so the dock always shows the current tools.
+  useEffect(() => {
+    setShortcuts(getShortcuts());
+  }, [selectedItem]);
+
 
   const maxHealth = getMaxHp(state.farmLevel);
   const health = Math.max(0, Math.min(maxHealth, state.hp ?? maxHealth));
@@ -108,20 +115,36 @@ export function GameHudDock({ wallet }: { wallet?: string }) {
               {Array.from({ length: 3 }, (_, index) => {
                 const item = actionSlots[index];
                 const image = item ? shortcutImage(item, tools) : undefined;
+                const isEquipped = !!item && item === selectedItem;
                 return (
                   <button
                     type="button"
                     key={item ?? `empty-${index}`}
                     aria-label={item ? `Equip ${item}` : `Empty shortcut ${index + 1}`}
+                    aria-pressed={isEquipped}
                     title={item ?? "Empty shortcut"}
                     disabled={!item}
                     onClick={() => item && shortcutItem(item)}
-                    className={`pointer-events-auto relative grid h-12 w-12 place-items-center bg-brown-600 active:translate-y-px sm:h-16 sm:w-16 ${
-                      item === selectedItem ? "bg-brown-200" : ""
+                    className={`pointer-events-auto relative grid h-12 w-12 place-items-center active:translate-y-px sm:h-16 sm:w-16 ${
+                      isEquipped ? "bg-brown-200 brightness-110" : "bg-brown-600"
                     }`}
                     style={slotBorder}
                   >
-                    {image && <img src={image} alt="" className="h-4/5 w-4/5 object-contain pixelated" />}
+                    {isEquipped && (
+                      <span
+                        aria-hidden="true"
+                        className="pointer-events-none absolute inset-0 ring-2 ring-inset ring-gold"
+                      />
+                    )}
+                    {image && (
+                      <img
+                        src={image}
+                        alt=""
+                        className={`relative h-4/5 w-4/5 object-contain pixelated ${
+                          isEquipped ? "img-highlight" : ""
+                        }`}
+                      />
+                    )}
                     <span className="absolute bottom-0.5 right-0.5 font-pixel text-[6px] text-primary-foreground text-outline">
                       {index + 1}
                     </span>
@@ -129,6 +152,7 @@ export function GameHudDock({ wallet }: { wallet?: string }) {
                 );
               })}
             </div>
+
 
             <button
               type="button"
