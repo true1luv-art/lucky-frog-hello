@@ -247,16 +247,6 @@ export default function EditorCanvas() {
                 </div>
               ))}
               <div className="flex gap-1">
-                <button
-                  type="button"
-                  className={button}
-                  onClick={() => {
-                    setWalking(!walking);
-                    editorBus.emit("cmd:animal-walk", { walking: !walking });
-                  }}
-                >
-                  {walking ? "Pause walk" : "Resume walk"}
-                </button>
                 <button type="button" className={button} onClick={() => editorBus.emit("cmd:animal-clear", {})}>
                   Clear
                 </button>
