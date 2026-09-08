@@ -62,24 +62,47 @@ export function GameHudDock({ wallet }: { wallet?: string }) {
 
   return (
     <>
+      {/* ── Upper-left: settings (menu) button ── */}
+      <div className="pointer-events-none fixed top-2 left-1 sm:left-2 z-50 select-none">
+        <button
+          type="button"
+          aria-label="Open player menu"
+          title="Menu"
+          onClick={() => setSettingsOpen(true)}
+          className="pointer-events-auto relative grid h-10 w-10 sm:h-14 sm:w-14 place-items-center active:translate-y-px"
+        >
+          <img src={button} alt="" className="absolute inset-0 h-full w-full pixelated" />
+          <img src={menu} alt="" className="relative h-1/2 w-1/2 object-contain pixelated" />
+        </button>
+      </div>
+
+      {/* ── Upper-right: coins ── */}
+      <div className="pointer-events-none fixed top-2 right-1 sm:right-2 z-50 select-none">
+        <div
+          className="pointer-events-auto flex items-center gap-1 whitespace-nowrap border-2 border-brown-700 bg-brown-600 px-1.5 py-1 sm:px-2"
+          style={slotBorder}
+          title={`${coins} coins`}
+        >
+          <img src={token} alt="" className="h-3.5 w-3.5 pixelated sm:h-4 sm:w-4" />
+          <span className="font-pixel text-[8px] text-gold text-outline sm:text-[10px]">
+            {coins}
+          </span>
+        </div>
+      </div>
+
+      {/* ── Bottom-center dock: health, stamina, shortcuts, inventory ── */}
       <div className="pointer-events-none fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom,0px)+0.5rem)] z-40 flex justify-center px-1 select-none">
         <div className="grid grid-cols-[3rem_minmax(0,14rem)_3rem] items-end gap-1 sm:grid-cols-[4rem_minmax(0,18rem)_4rem] sm:gap-2">
-          <div className="relative flex flex-col items-center">
-            <div className="absolute -top-6 flex items-center gap-1 whitespace-nowrap font-pixel text-[7px] text-gold text-outline sm:text-[8px]">
-              <img src={token} alt="" className="h-3.5 w-3.5 pixelated" />
-              {coins}
-            </div>
-            <div
-              className="relative grid h-12 w-12 place-items-center sm:h-16 sm:w-16"
-              title={`Health: ${maxHealth}/${maxHealth}`}
-              aria-label={`Health ${maxHealth} of ${maxHealth}`}
-            >
-              <img src={button} alt="" className="absolute inset-0 h-full w-full pixelated" />
-              <img src={heart} alt="" className="relative h-5 w-5 pixelated sm:h-7 sm:w-7" />
-              <span className="absolute -bottom-1 font-pixel text-[6px] text-primary-foreground text-outline sm:text-[7px]">
-                {maxHealth}
-              </span>
-            </div>
+          <div
+            className="relative grid h-12 w-12 place-items-center sm:h-16 sm:w-16"
+            title={`Health: ${maxHealth}/${maxHealth}`}
+            aria-label={`Health ${maxHealth} of ${maxHealth}`}
+          >
+            <img src={button} alt="" className="absolute inset-0 h-full w-full pixelated" />
+            <img src={heart} alt="" className="relative h-5 w-5 pixelated sm:h-7 sm:w-7" />
+            <span className="absolute -bottom-1 font-pixel text-[6px] text-primary-foreground text-outline sm:text-[7px]">
+              {maxHealth}
+            </span>
           </div>
 
           <div className="flex min-w-0 flex-col items-center gap-1">
@@ -96,18 +119,7 @@ export function GameHudDock({ wallet }: { wallet?: string }) {
               </span>
             </div>
 
-            <div className="grid w-full grid-cols-4 gap-1">
-              <button
-                type="button"
-                aria-label="Open player menu"
-                title="Menu"
-                onClick={() => setSettingsOpen(true)}
-                className="pointer-events-auto grid aspect-square min-w-0 place-items-center bg-brown-600 active:translate-y-px"
-                style={slotBorder}
-              >
-                <img src={menu} alt="" className="h-1/2 w-1/2 object-contain pixelated" />
-              </button>
-
+            <div className="grid w-full grid-cols-3 gap-1">
               {Array.from({ length: 3 }, (_, index) => {
                 const item = actionSlots[index];
                 const image = item ? shortcutImage(item, tools) : undefined;
