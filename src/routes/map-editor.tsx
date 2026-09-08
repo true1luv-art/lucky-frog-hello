@@ -278,8 +278,16 @@ function MapEditor() {
             ))}
           </div>
           <div className="ml-auto flex gap-2">
-            <button type="button" onClick={() => void navigator.clipboard.writeText(json)} className="rounded border border-border px-3 py-1 text-xs">
-              Copy JSON
+            <button
+              type="button"
+              onClick={() => {
+                void navigator.clipboard.writeText(json);
+                setCopied(true);
+                window.setTimeout(() => setCopied(false), 1500);
+              }}
+              className="rounded border border-border px-3 py-1 text-xs"
+            >
+              {copied ? "Copied!" : "Copy JSON"}
             </button>
             <button type="button" onClick={() => setMarkers(buildMarkers())} className="rounded border border-border px-3 py-1 text-xs">
               Reset
