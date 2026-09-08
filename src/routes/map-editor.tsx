@@ -166,18 +166,52 @@ function MapEditor() {
       if (!dragKey) return;
       const rect = wrapRef.current?.getBoundingClientRect();
       if (!rect) return;
-      const tx = Math.max(0, Math.floor((e.clientX - rect.left) / PX));
-      const ty = Math.max(0, Math.floor((e.clientY - rect.top) / PX));
+      const gx = Math.floor((e.clientX - rect.left) / PX) - dragOff.current.dx;
+      const gy = Math.floor((e.clientY - rect.top) / PX) - dragOff.current.dy;
       setMarkers((prev) =>
         prev.map((m) => {
           if (m.key !== dragKey) return m;
+          const tx = Math.min(Math.max(0, gx), Math.max(0, mapSize.w - m.w));
+          const ty = Math.min(Math.max(0, gy), Math.max(0, mapSize.h - m.h));
           if (m.x !== tx || m.y !== ty) setMoved(true);
           return { ...m, x: tx, y: ty };
         })
       );
     },
-    [dragKey, PX]
+    [dragKey, PX, mapSize]
   );
+
+  // Arrow keys nudge the selected asset by one tile.
+  useEffect(() => {
+    if (!selected) return;
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA")) return;
+      const d: Record<string, [number, number]> = {
+        ArrowLeft: [-1, 0],
+        ArrowRight: [1, 0],
+        ArrowUp: [0, -1],
+        ArrowDown: [0, 1],
+      };
+      const move = d[e.key];
+      if (!move) return;
+      e.preventDefault();
+      setMarkers((prev) =>
+        prev.map((m) =>
+          m.key === selected
+            ? {
+                ...m,
+                x: Math.min(Math.max(0, m.x + move[0]), Math.max(0, mapSize.w - m.w)),
+                y: Math.min(Math.max(0, m.y + move[1]), Math.max(0, mapSize.h - m.h)),
+              }
+            : m
+        )
+      );
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [selected, mapSize]);
+
 
   const groups = useMemo(() => Array.from(new Set(markers.map((m) => m.group))), [markers]);
 
