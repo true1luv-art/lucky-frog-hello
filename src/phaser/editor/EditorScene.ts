@@ -366,18 +366,6 @@ export class EditorScene extends Phaser.Scene {
       editorBus.on("cmd:animal-add", ({ kind }) => this.spawnAnimal(kind)),
       editorBus.on("cmd:animal-remove", ({ kind }) => this.removeAnimal(kind)),
       editorBus.on("cmd:animal-clear", () => this.clearAnimals()),
-      editorBus.on("cmd:animal-walk", ({ walking }) => {
-        this.animalsWalking = walking;
-        this.animals.forEach((animal) => {
-          if (walking) {
-            this.scheduleWalk(animal);
-          } else {
-            animal.timer?.remove();
-            this.tweens.killTweensOf(animal.sprite);
-            animal.sprite.anims.pause();
-          }
-        });
-      }),
     );
   }
 
