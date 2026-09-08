@@ -22,6 +22,7 @@ import { TREE_RECOVERY_SECONDS } from "@/features/events/chop/chop";
 import { useGameStore }         from "@/features/game-stores/useGameStore";
 import { screenTracker }        from "@/features/utils/screen";
 import type { FishName }        from "@/features/types/gameplay/fish";
+import { FishCaughtModal }      from "@/features/game-components/fishing/FishCaughtModal";
 import {
   marketAudio,
   kitchenAudio,
@@ -513,12 +514,9 @@ function FishingEventBridge() {
     return () => window.removeEventListener("phaser-fishing-open", onCaught);
   }, []);
 
-  // Dynamic import to avoid bundling FishCaughtModal before it's needed
-  const FishCaughtModal = fishResult ? require("@/features/game-components/fishing/FishCaughtModal").FishCaughtModal : null;
-
   return (
     <>
-      {fishResult && FishCaughtModal && (
+      {fishResult && (
         <FishCaughtModal
           fish={fishResult.fish}
           amount={fishResult.amount}
