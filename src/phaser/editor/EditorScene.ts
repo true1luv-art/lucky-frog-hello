@@ -159,9 +159,10 @@ export class EditorScene extends Phaser.Scene {
       const px = x * TILE;
       const py = y * TILE;
       const color = GROUP_COLOR[group];
-      const animatedNpc = group === "npcs" && texture?.startsWith("npc_") && this.textures.exists(texture);
+      const npcTexture = texture ?? "";
+      const animatedNpc = group === "npcs" && npcTexture.startsWith("npc_") && this.textures.exists(npcTexture);
       const sprite = animatedNpc
-        ? this.add.sprite(px, py, texture, 0).setOrigin(0, 0).setDisplaySize(w * TILE, h * TILE)
+        ? this.add.sprite(px, py, npcTexture, 0).setOrigin(0, 0).setDisplaySize(w * TILE, h * TILE)
         : texture && this.textures.exists(texture)
           ? this.add.image(px, py, texture).setOrigin(0, 0).setDisplaySize(w * TILE, h * TILE)
           : this.add.rectangle(px, py, w * TILE, h * TILE, color, 0.5).setOrigin(0, 0);
