@@ -118,21 +118,21 @@ export type Animal = "Chicken" | "Cow" | "Sheep";
 export const FOODS: () => Record<Food, Craftable> = () => ({
   "Baked Potato": {
     name: "Baked Potato",
-    description: "Warm and simple. Restores 20 stamina.",
+    description: "Warm and simple. Restores 20 HP.",
     ingredients: [
       { item: "Potato", amount: new Decimal(2) },
     ],
   },
   "Cooked Fish": {
     name: "Cooked Fish",
-    description: "Lightly grilled fish. Restores 10 stamina.",
+    description: "Lightly grilled fish. Restores 10 HP.",
     ingredients: [
       { item: "Fish", amount: new Decimal(1) },
     ],
   },
   "Cabbage Roll": {
     name: "Cabbage Roll",
-    description: "Savory wrapped delight. Restores 25 stamina.",
+    description: "Savory wrapped delight. Restores 25 HP.",
     ingredients: [
       { item: "Cabbage", amount: new Decimal(2) },
       { item: "Carrot",  amount: new Decimal(1) },
@@ -140,14 +140,14 @@ export const FOODS: () => Record<Food, Craftable> = () => ({
   },
   "Carrot Stew": {
     name: "Carrot Stew",
-    description: "Hearty stew. Restores 30 stamina.",
+    description: "Hearty stew. Restores 30 HP.",
     ingredients: [
       { item: "Carrot", amount: new Decimal(3) },
     ],
   },
   "Pumpkin Soup": {
     name: "Pumpkin Soup",
-    description: "Creamy autumn flavor. Restores 40 stamina.",
+    description: "Creamy autumn flavor. Restores 40 HP.",
     ingredients: [
       { item: "Pumpkin", amount: new Decimal(3) },
       { item: "Cabbage", amount: new Decimal(1) },
@@ -155,14 +155,14 @@ export const FOODS: () => Record<Food, Craftable> = () => ({
   },
   "Scrambled Eggs": {
     name: "Scrambled Eggs",
-    description: "Fluffy eggs. Restores 35 stamina.",
+    description: "Fluffy eggs. Restores 35 HP.",
     ingredients: [
       { item: "Egg", amount: new Decimal(3) },
     ],
   },
   "Wheat Bread": {
     name: "Wheat Bread",
-    description: "Fresh baked loaf. Restores 50 stamina.",
+    description: "Fresh baked loaf. Restores 50 HP.",
     ingredients: [
       { item: "Wheat", amount: new Decimal(5) },
       { item: "Milk",  amount: new Decimal(1) },
@@ -170,7 +170,7 @@ export const FOODS: () => Record<Food, Craftable> = () => ({
   },
   "Pumpkin Pie": {
     name: "Pumpkin Pie",
-    description: "Sweet and golden. Restores 60 stamina.",
+    description: "Sweet and golden. Restores 60 HP.",
     ingredients: [
       { item: "Pumpkin", amount: new Decimal(3) },
       { item: "Egg",     amount: new Decimal(2) },
@@ -180,9 +180,9 @@ export const FOODS: () => Record<Food, Craftable> = () => ({
 });
 
 /**
- * Stamina restored when a food is eaten.
+ * HP restored when a food is eaten.
  *
- * | Food           | Stamina |
+ * | Food           | HP |
  * |----------------|---------|
  * | Baked Potato   |  20     |
  * | Cooked Fish    |  10     |
@@ -193,15 +193,15 @@ export const FOODS: () => Record<Food, Craftable> = () => ({
  * | Wheat Bread    |  50     |
  * | Pumpkin Pie    |  60     |
  */
-export const FOOD_EFFECTS: Record<Food, { stamina: number }> = {
-  "Baked Potato":   { stamina: 20 },
-  "Cooked Fish":    { stamina: 10 },
-  "Cabbage Roll":   { stamina: 25 },
-  "Carrot Stew":    { stamina: 30 },
-  "Pumpkin Soup":   { stamina: 40 },
-  "Scrambled Eggs": { stamina: 35 },
-  "Wheat Bread":    { stamina: 50 },
-  "Pumpkin Pie":    { stamina: 60 },
+export const FOOD_EFFECTS: Record<Food, { hp: number }> = {
+  "Baked Potato":   { hp: 20 },
+  "Cooked Fish":    { hp: 10 },
+  "Cabbage Roll":   { hp: 25 },
+  "Carrot Stew":    { hp: 30 },
+  "Pumpkin Soup":   { hp: 40 },
+  "Scrambled Eggs": { hp: 35 },
+  "Wheat Bread":    { hp: 50 },
+  "Pumpkin Pie":    { hp: 60 },
 };
 
 /**
