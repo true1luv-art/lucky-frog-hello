@@ -191,13 +191,6 @@ export default function EditorCanvas() {
           drawer ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <button
-          type="button"
-          className="absolute -left-9 top-3 rounded-l border border-white/20 bg-black/80 px-2 py-2 text-[11px]"
-          onClick={() => setDrawer(null)}
-        >
-          ›
-        </button>
         <div className="h-full overflow-y-auto p-3 text-[11px]">
           {drawer === "map" && (
             <div className="space-y-3">
