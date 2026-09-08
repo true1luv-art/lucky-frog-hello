@@ -244,6 +244,13 @@ function MapEditor() {
     setMarkers((prev) => prev.map((m) => (m.key === key ? { ...m, [field]: Math.max(field === "w" || field === "h" ? 1 : 0, value) } : m)));
   }, []);
 
+  const focusMarker = useCallback((key: string) => {
+    setSelected(key);
+    window.requestAnimationFrame(() => {
+      document.querySelector(`[data-marker="${key}"]`)?.scrollIntoView({ block: "center", inline: "center", behavior: "smooth" });
+    });
+  }, []);
+
   return (
     <main className="flex h-screen w-full overflow-hidden bg-background text-foreground">
       <div className="flex min-w-0 flex-1 flex-col">
