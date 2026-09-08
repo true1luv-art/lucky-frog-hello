@@ -15,7 +15,7 @@ import { ITEM_DETAILS } from "@/features/types/item-details";
 const basket = "/assets/icons/basket.png";
 const button = "/assets/ui/button/round_button.png";
 const darkBorder = "/assets/ui/panel/dark_border.png";
-const heart = "/assets/icons/heart.png";
+
 const menu = "/assets/icons/hamburger_menu.png";
 const token = "/assets/icons/luckyfrog_token.png";
 
@@ -87,24 +87,24 @@ export function GameHudDock({ wallet }: { wallet?: string }) {
         </div>
       </div>
 
-      {/* ── Bottom-center dock: hp, shortcuts, inventory ── */}
+      {/* ── Bottom-center dock: hp bar, shortcuts + inventory ── */}
       <div className="pointer-events-none fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom,0px)+0.5rem)] z-40 flex justify-center px-1 select-none">
-        <div className="grid grid-cols-[minmax(0,9rem)_3rem] items-end gap-1 sm:grid-cols-[minmax(0,11rem)_4rem] sm:gap-2">
-          <div className="flex min-w-0 flex-col items-center gap-1">
-            <div className="flex w-full items-center gap-1 px-1">
-              <img src={heart} alt="" className="h-3.5 w-3.5 shrink-0 pixelated sm:h-4 sm:w-4" />
-              <div className="h-3 min-w-0 flex-1 overflow-hidden border-2 border-brown-700 bg-foreground/60 p-0.5 sm:h-4">
-                <div
-                  className="h-full bg-rose transition-[width] duration-500"
-                  style={{ width: `${healthPct}%` }}
-                />
-              </div>
-              <span className="shrink-0 font-pixel text-[6px] text-primary-foreground text-outline sm:text-[7px]">
-                {health}/{maxHealth}
-              </span>
-            </div>
+        <div className="flex flex-col items-center gap-1">
+          <div
+            className="pointer-events-auto relative flex h-4 w-full min-w-0 items-center overflow-hidden border-2 border-brown-700 bg-foreground/60 p-0.5 sm:h-5"
+            style={slotBorder}
+          >
+            <div
+              className="h-full bg-rose transition-[width] duration-500"
+              style={{ width: `${healthPct}%` }}
+            />
+            <span className="absolute inset-0 flex items-center justify-center font-pixel text-[8px] text-primary-foreground text-outline sm:text-[10px]">
+              {health}/{maxHealth}
+            </span>
+          </div>
 
-            <div className="grid w-full grid-cols-3 gap-1">
+          <div className="grid grid-cols-[auto_auto] items-end gap-1 sm:gap-2">
+            <div className="grid grid-cols-3 gap-1">
               {Array.from({ length: 3 }, (_, index) => {
                 const item = actionSlots[index];
                 const image = item ? shortcutImage(item, tools) : undefined;
@@ -116,7 +116,7 @@ export function GameHudDock({ wallet }: { wallet?: string }) {
                     title={item ?? "Empty shortcut"}
                     disabled={!item}
                     onClick={() => item && shortcutItem(item)}
-                    className={`pointer-events-auto relative grid aspect-square min-w-0 place-items-center bg-brown-600 active:translate-y-px ${
+                    className={`pointer-events-auto relative grid h-12 w-12 place-items-center bg-brown-600 active:translate-y-px sm:h-16 sm:w-16 ${
                       item === selectedItem ? "bg-brown-200" : ""
                     }`}
                     style={slotBorder}
@@ -129,18 +129,18 @@ export function GameHudDock({ wallet }: { wallet?: string }) {
                 );
               })}
             </div>
-          </div>
 
-          <button
-            type="button"
-            aria-label="Open inventory"
-            title="Inventory"
-            onClick={() => setInventoryOpen(true)}
-            className="pointer-events-auto relative grid h-12 w-12 place-items-center active:translate-y-px sm:h-16 sm:w-16"
-          >
-            <img src={button} alt="" className="absolute inset-0 h-full w-full pixelated" />
-            <img src={basket} alt="" className="relative h-5 w-5 pixelated sm:h-8 sm:w-8" />
-          </button>
+            <button
+              type="button"
+              aria-label="Open inventory"
+              title="Inventory"
+              onClick={() => setInventoryOpen(true)}
+              className="pointer-events-auto relative grid h-12 w-12 place-items-center active:translate-y-px sm:h-16 sm:w-16"
+            >
+              <img src={button} alt="" className="absolute inset-0 h-full w-full pixelated" />
+              <img src={basket} alt="" className="relative h-5 w-5 pixelated sm:h-8 sm:w-8" />
+            </button>
+          </div>
         </div>
       </div>
 
