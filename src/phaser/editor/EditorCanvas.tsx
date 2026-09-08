@@ -46,6 +46,10 @@ const panel = "rounded-lg border border-white/15 bg-black/70 p-3 text-white shad
 const button =
   "rounded border border-white/20 bg-white/10 px-2 py-1 text-[11px] uppercase tracking-wide text-white transition hover:bg-white/20";
 
+type Drawer = "map" | "spawns" | "assets";
+
+const DRAWER_LABEL: Record<Drawer, string> = { map: "Map", spawns: "Spawns", assets: "Assets" };
+
 export default function EditorCanvas() {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const gameRef = useRef<import("phaser").Game | null>(null);
@@ -56,9 +60,9 @@ export default function EditorCanvas() {
   const [counts, setCounts] = useState<Record<AnimalKind, number>>({ chicken: 0, cow: 0, sheep: 0 });
   const [walking, setWalking] = useState(true);
   const [grid, setGrid] = useState(true);
-  
+
+  const [drawer, setDrawer] = useState<Drawer | null>(null);
   const [jsonGroup, setJsonGroup] = useState<EditorGroup | null>(null);
-  const [drawerOpen, setDrawerOpen] = useState(true);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -114,6 +118,8 @@ export default function EditorCanvas() {
     [markers],
   );
 
+  const toggleDrawer = (next: Drawer) => setDrawer((current) => (current === next ? null : next));
+
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-[#5da9e9]">
       <div ref={hostRef} className="absolute inset-0" />
@@ -124,64 +130,18 @@ export default function EditorCanvas() {
         </div>
       )}
 
-      {/* Toolbar */}
-      <div className={`absolute left-3 top-3 z-20 w-[15rem] space-y-3 ${panel}`}>
-        <div className="text-xs font-semibold uppercase tracking-widest text-amber-300">Map Editor</div>
-        <div className="text-[11px] text-white/70">
-          Left-drag an asset to move it · middle-drag to pan · wheel to zoom · arrows nudge
-        </div>
-        <div className="flex flex-wrap gap-1">
-          <button type="button" className={button} onClick={() => { setGrid(!grid); editorBus.emit("cmd:grid", { show: !grid }); }}>
-            Grid {grid ? "on" : "off"}
-          </button>
-          <button type="button" className={button} onClick={() => editorBus.emit("cmd:reset", {})}>
-            Reset
-          </button>
-        </div>
-        <div className="flex flex-wrap gap-1">
-          {GROUPS.map((group) => (
-            <button key={group} type="button" className={button} onClick={() => setJsonGroup(group)}>
-              {GROUP_LABEL[group]}
-            </button>
-          ))}
-        </div>
-        <div className="text-[11px] text-white/60">
-          zoom {camera.zoom.toFixed(2)}× · tile {camera.tileX},{camera.tileY}
-        </div>
-      </div>
-
-      {/* Animal spawner */}
-      <div className={`absolute bottom-3 left-3 z-20 w-[15rem] space-y-2 ${panel}`}>
-        <div className="text-xs font-semibold uppercase tracking-widest text-amber-300">Animal spawns</div>
-        {ANIMALS.map(({ kind, label, max }) => (
-          <div key={kind} className="flex items-center justify-between gap-2">
-            <span className="text-[11px]">{label}</span>
-            <div className="flex items-center gap-1">
-              <button type="button" className={button} onClick={() => editorBus.emit("cmd:animal-remove", { kind })}>
-                −
-              </button>
-              <span className="w-10 text-center text-[11px] tabular-nums">
-                {counts[kind]}/{max}
-              </span>
-              <button type="button" className={button} onClick={() => editorBus.emit("cmd:animal-add", { kind })}>
-                +
-              </button>
-            </div>
-          </div>
-        ))}
-        <div className="flex gap-1">
+      {/* Stacked drawer buttons — top left */}
+      <div className="absolute left-3 top-3 z-20 flex flex-col gap-2">
+        {(Object.keys(DRAWER_LABEL) as Drawer[]).map((key) => (
           <button
+            key={key}
             type="button"
-            className={button}
-            onClick={() => { setWalking(!walking); editorBus.emit("cmd:animal-walk", { walking: !walking }); }}
+            onClick={() => toggleDrawer(key)}
+            className={`${button} ${drawer === key ? "border-amber-300 bg-amber-300/20 text-amber-300" : "bg-black/70"}`}
           >
-            {walking ? "Pause walk" : "Resume walk"}
+            {DRAWER_LABEL[key]}
           </button>
-          <button type="button" className={button} onClick={() => editorBus.emit("cmd:animal-clear", {})}>
-            Clear
-          </button>
-        </div>
-        <div className="text-[11px] text-white/60">Animals roam inside the yellow ranch outline, same as in game.</div>
+        ))}
       </div>
 
       {/* Selected asset popover */}
@@ -226,52 +186,121 @@ export default function EditorCanvas() {
         </div>
       )}
 
-      {/* Asset drawer */}
+      {/* Right drawer */}
       <div
         className={`absolute right-0 top-0 z-20 h-full w-[19rem] transform border-l border-white/15 bg-black/80 text-white transition-transform ${
-          drawerOpen ? "translate-x-0" : "translate-x-[17rem]"
+          drawer ? "translate-x-0" : "translate-x-full"
         }`}
       >
         <button
           type="button"
           className="absolute -left-9 top-3 rounded-l border border-white/20 bg-black/80 px-2 py-2 text-[11px]"
-          onClick={() => setDrawerOpen(!drawerOpen)}
+          onClick={() => setDrawer(null)}
         >
-          {drawerOpen ? "›" : "‹"}
+          ›
         </button>
         <div className="h-full overflow-y-auto p-3 text-[11px]">
-          <div className="mb-2 text-xs font-semibold uppercase tracking-widest text-amber-300">Assets</div>
-          {grouped.map(({ group, items }) => (
-            <div key={group} className="mb-3">
-              <div className="mb-1 flex items-center justify-between">
-                <span className="font-semibold text-white/80">
-                  {GROUP_LABEL[group]} ({items.length})
-                </span>
-                <button type="button" className={button} onClick={() => setJsonGroup(group)}>
-                  JSON
+          {drawer === "map" && (
+            <div className="space-y-3">
+              <div className="text-xs font-semibold uppercase tracking-widest text-amber-300">Map</div>
+              <div className="text-[11px] text-white/70">
+                Left-drag an asset to move it · middle-drag to pan · wheel to zoom · arrows nudge
+              </div>
+              <div className="flex flex-wrap gap-1">
+                <button
+                  type="button"
+                  className={button}
+                  onClick={() => {
+                    setGrid(!grid);
+                    editorBus.emit("cmd:grid", { show: !grid });
+                  }}
+                >
+                  Grid {grid ? "on" : "off"}
+                </button>
+                <button type="button" className={button} onClick={() => editorBus.emit("cmd:reset", {})}>
+                  Reset
                 </button>
               </div>
-              <div className="space-y-1">
-                {items.map((item) => (
-                  <button
-                    key={item.key}
-                    type="button"
-                    onClick={() => editorBus.emit("cmd:focus", { key: item.key })}
-                    className={`flex w-full items-center justify-between rounded border px-2 py-1 text-left ${
-                      selected?.key === item.key
-                        ? "border-amber-300 bg-amber-300/20"
-                        : "border-white/10 bg-white/5 hover:bg-white/10"
-                    }`}
-                  >
-                    <span className="truncate">{item.id}</span>
-                    <span className="tabular-nums text-white/70">
-                      {item.x},{item.y} · {item.w}×{item.h}
-                    </span>
-                  </button>
-                ))}
+              <div className="text-[11px] text-white/60">
+                zoom {camera.zoom.toFixed(2)}× · tile {camera.tileX},{camera.tileY}
               </div>
             </div>
-          ))}
+          )}
+
+          {drawer === "spawns" && (
+            <div className="space-y-3">
+              <div className="text-xs font-semibold uppercase tracking-widest text-amber-300">Animal spawns</div>
+              {ANIMALS.map(({ kind, label, max }) => (
+                <div key={kind} className="flex items-center justify-between gap-2">
+                  <span className="text-[11px]">{label}</span>
+                  <div className="flex items-center gap-1">
+                    <button type="button" className={button} onClick={() => editorBus.emit("cmd:animal-remove", { kind })}>
+                      −
+                    </button>
+                    <span className="w-10 text-center text-[11px] tabular-nums">
+                      {counts[kind]}/{max}
+                    </span>
+                    <button type="button" className={button} onClick={() => editorBus.emit("cmd:animal-add", { kind })}>
+                      +
+                    </button>
+                  </div>
+                </div>
+              ))}
+              <div className="flex gap-1">
+                <button
+                  type="button"
+                  className={button}
+                  onClick={() => {
+                    setWalking(!walking);
+                    editorBus.emit("cmd:animal-walk", { walking: !walking });
+                  }}
+                >
+                  {walking ? "Pause walk" : "Resume walk"}
+                </button>
+                <button type="button" className={button} onClick={() => editorBus.emit("cmd:animal-clear", {})}>
+                  Clear
+                </button>
+              </div>
+              <div className="text-[11px] text-white/60">Animals roam inside the yellow ranch outline, same as in game.</div>
+            </div>
+          )}
+
+          {drawer === "assets" && (
+            <div>
+              <div className="mb-2 text-xs font-semibold uppercase tracking-widest text-amber-300">Assets</div>
+              {grouped.map(({ group, items }) => (
+                <div key={group} className="mb-3">
+                  <div className="mb-1 flex items-center justify-between">
+                    <span className="font-semibold text-white/80">
+                      {GROUP_LABEL[group]} ({items.length})
+                    </span>
+                    <button type="button" className={button} onClick={() => setJsonGroup(group)}>
+                      JSON
+                    </button>
+                  </div>
+                  <div className="space-y-1">
+                    {items.map((item) => (
+                      <button
+                        key={item.key}
+                        type="button"
+                        onClick={() => editorBus.emit("cmd:focus", { key: item.key })}
+                        className={`flex w-full items-center justify-between rounded border px-2 py-1 text-left ${
+                          selected?.key === item.key
+                            ? "border-amber-300 bg-amber-300/20"
+                            : "border-white/10 bg-white/5 hover:bg-white/10"
+                        }`}
+                      >
+                        <span className="truncate">{item.id}</span>
+                        <span className="tabular-nums text-white/70">
+                          {item.x},{item.y} · {item.w}×{item.h}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
