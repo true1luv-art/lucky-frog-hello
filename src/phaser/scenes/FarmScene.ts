@@ -180,7 +180,35 @@ export class FarmScene extends Phaser.Scene {
 
     this.worldInteractionSystem?.update();
     this.fishingSystem?.update();
+    this._checkTravelBoundaries();
     this._writeMobileActionHint();
+  }
+
+  /**
+   * boundary_to_town / boundary_to_beach are placement-only marker layers —
+   * the destination maps do not exist yet, so stepping on one shows the
+   * "coming soon" area modal instead of changing scene.
+   */
+  private _lastTravelPromptMs = 0;
+  private _checkTravelBoundaries(): void {
+    const world = this.worldSystem;
+    if (!world || !this.player?.sprite) return;
+    const now = this.time.now;
+    if (now - this._lastTravelPromptMs < 4000) return;
+
+    const x = this.player.sprite.x;
+    const y = this.player.sprite.y;
+    const areas: Array<[string, string]> = [
+      ["boundary_to_town",  "Hearthvale Town"],
+      ["boundary_to_beach", "Beach"],
+    ];
+    for (const [layer, label] of areas) {
+      if (world.hasTileAt(layer, x, y)) {
+        this._lastTravelPromptMs = now;
+        dispatchUiEvent("phaser-coming-soon", { area: label });
+        return;
+      }
+    }
   }
 
   // ─── Private — setup ──────────�����──────────────���─────────────────────────────
