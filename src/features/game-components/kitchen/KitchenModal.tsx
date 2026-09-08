@@ -156,10 +156,10 @@ export const KitchenModal: React.FC<Props> = ({ show, onClose }) => {
               </ShowcaseChip>
             )}
 
-            {/* Stamina effect chip */}
-            {(effects as { stamina?: number }).stamina != null && (effects as { stamina?: number }).stamina! > 0 && (
-              <ShowcaseChip icon="/assets/icons/lightning.png">
-                +{(effects as { stamina?: number }).stamina} Stamina
+            {/* HP effect chip */}
+            {(effects as { hp?: number }).hp != null && (effects as { hp?: number }).hp! > 0 && (
+              <ShowcaseChip icon="/assets/icons/heart.png">
+                +{(effects as { hp?: number }).hp} HP
               </ShowcaseChip>
             )}
           </>
