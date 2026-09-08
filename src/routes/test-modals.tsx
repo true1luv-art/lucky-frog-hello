@@ -65,8 +65,9 @@ function ShellDemo({ tier, onClose }: { tier: "toast" | "panel" | "fullscreen"; 
       {tier !== "toast" && (
         <div className="flex flex-wrap items-center gap-1">
           <SectionLabel>{`Demo · ${active}`}</SectionLabel>
-          <StatChip icon="/assets/icons/coins.png" label="Coins" value="1,234" />
-          <StatChip icon="/assets/icons/heart.png" label="Health" value="87 / 100" />
+          <StatChip icon="/assets/icons/coins.png" caption="Coins" value="1,234" />
+          <StatChip icon="/assets/icons/heart.png" caption="Health" value="87 / 100" />
+
         </div>
       )}
       <InnerPanel className="flex min-h-24 items-center justify-center p-3 text-center text-[10px] text-white text-shadow">
