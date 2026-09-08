@@ -221,7 +221,7 @@ export class EditorScene extends Phaser.Scene {
     this.selectedKey = key;
     for (const entry of this.markers) {
       const active = entry.key === key;
-      entry.outline.setStrokeStyle(active ? 2 : 1, active ? 0xffffff : GROUP_COLOR[entry.group], active ? 1 : 0.85);
+      entry.outline.setStrokeStyle(active ? 0.6 : 0.3, active ? 0xffffff : GROUP_COLOR[entry.group], active ? 1 : 0.85);
     }
     const found = this.markers.find((m) => m.key === key);
     editorBus.emit("select", { marker: found ? this.plain(found) : null });
