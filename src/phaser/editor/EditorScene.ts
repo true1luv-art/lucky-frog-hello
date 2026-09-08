@@ -167,7 +167,7 @@ export class EditorScene extends Phaser.Scene {
       const outline = this.add
         .rectangle(px, py, w * TILE, h * TILE)
         .setOrigin(0, 0)
-        .setStrokeStyle(1, color, 0.85)
+        .setStrokeStyle(0.3, color, 0.85)
         .setDepth(OUTLINE_DEPTH);
 
       const entry: MarkerEntry = {
