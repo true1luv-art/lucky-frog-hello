@@ -195,9 +195,18 @@ export class WorldSystem {
     // We still create the layer so hasTileAt() queries work, but no collider.
     const barnBoundary = map.createLayer("boundary_ranch", tileset, 0, 0)?.setDepth(0)?.setVisible(false);
     this.barnBoundaryLayer = barnBoundary ?? null;
+    if (barnBoundary) this.namedLayers["boundary_ranch"] = barnBoundary;
 
     // Pond boundary layer — invisible, defines castable fishing tiles.
     const fishingLayer = map.createLayer("boundary_pond", tileset, 0, 0)?.setDepth(0)?.setVisible(false) ?? null;
+    if (fishingLayer) this.namedLayers["boundary_pond"] = fishingLayer;
+
+    // Travel boundaries — invisible marker tiles only (destination maps not built yet).
+    for (const name of ["boundary_to_town", "boundary_to_beach"]) {
+      const layer = map.createLayer(name, tileset, 0, 0)?.setDepth(0)?.setVisible(false);
+      if (layer) this.namedLayers[name] = layer;
+    }
+
 
     return { fishingLayer, boundaryLayer };
   }
