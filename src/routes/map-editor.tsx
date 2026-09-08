@@ -28,8 +28,7 @@ export const Route = createFileRoute("/map-editor")({
 });
 
 const TILE = 16;
-const SCALE = 2;
-const PX = TILE * SCALE;
+const PX_BASE = TILE;
 
 type Marker = {
   key: string;
@@ -41,18 +40,30 @@ type Marker = {
   h: number;
   color: string;
   label: string;
+  sprite?: string;
+};
+
+const BUILDING_SPRITES: Record<string, string> = {
+  house: "/assets/buildings/house.png",
+  market: "/assets/buildings/market_building.png",
+  kitchen: "/assets/buildings/kitchen_building.png",
+  blacksmith: "/assets/buildings/blacksmith_building.png",
+  bank: "/assets/buildings/tailor.gif",
+  wishing_well: "/assets/buildings/wishing_well.png",
+  summoning_shrine: "/assets/buildings/hatchery.png",
+  cabin: "/assets/buildings/cabin.png",
 };
 
 function buildMarkers(): Marker[] {
   const out: Marker[] = [];
   TREE_POSITIONS.forEach((t) =>
-    out.push({ key: `tree:${t.id}`, group: "trees", id: t.id, x: t.x, y: t.y, w: 1, h: 1, color: "#2f7d32", label: "T" })
+    out.push({ key: `tree:${t.id}`, group: "trees", id: t.id, x: t.x, y: t.y, w: 1, h: 1, color: "#2f7d32", label: "T", sprite: "/assets/resources/tree_node.png" })
   );
   STONE_POSITIONS.forEach((s) =>
-    out.push({ key: `stone:${s.id}`, group: "stones", id: s.id, x: s.x, y: s.y, w: 1, h: 1, color: "#6b7280", label: "S" })
+    out.push({ key: `stone:${s.id}`, group: "stones", id: s.id, x: s.x, y: s.y, w: 1, h: 1, color: "#6b7280", label: "S", sprite: "/assets/resources/stone_node.png" })
   );
   PLOT_POSITIONS.forEach((p) =>
-    out.push({ key: `plot:${p.id}`, group: "plots", id: p.id, x: p.x, y: p.y, w: 1, h: 1, color: "#a16207", label: "P" })
+    out.push({ key: `plot:${p.id}`, group: "plots", id: p.id, x: p.x, y: p.y, w: 1, h: 1, color: "#a16207", label: "P", sprite: "/assets/land/soil2.png" })
   );
   BUILDING_POSITIONS.forEach((b) =>
     out.push({
@@ -64,33 +75,24 @@ function buildMarkers(): Marker[] {
       w: b.width,
       h: b.height,
       color: "#7c3aed",
-      label: b.type.slice(0, 3),
+      label: b.type,
+      sprite: BUILDING_SPRITES[b.type],
     })
   );
   NPC_POSITIONS.forEach((n) =>
-    out.push({ key: `npc:${n.id}`, group: "npcs", id: n.id, x: n.x, y: n.y, w: n.width, h: n.height, color: "#dc2626", label: "N" })
+    out.push({ key: `npc:${n.id}`, group: "npcs", id: n.id, x: n.x, y: n.y, w: n.width, h: n.height, color: "#dc2626", label: n.name ?? "NPC", sprite: "/assets/npcs/idle.gif" })
   );
   CHICKEN_SPAWN_POSITIONS.forEach((a) =>
-    out.push({ key: `chicken:${a.index}`, group: "chickens", id: String(a.index), x: a.x, y: a.y, w: 1, h: 1, color: "#f59e0b", label: "c" })
+    out.push({ key: `chicken:${a.index}`, group: "chickens", id: String(a.index), x: a.x, y: a.y, w: 1, h: 1, color: "#f59e0b", label: "c", sprite: "/assets/animals/chicken.gif" })
   );
   COW_SPAWN_POSITIONS.forEach((a) =>
-    out.push({ key: `cow:${a.index}`, group: "cows", id: String(a.index), x: a.x, y: a.y, w: 1, h: 1, color: "#f472b6", label: "w" })
+    out.push({ key: `cow:${a.index}`, group: "cows", id: String(a.index), x: a.x, y: a.y, w: 2, h: 2, color: "#f472b6", label: "w", sprite: "/assets/animals/cow.gif" })
   );
   SHEEP_SPAWN_POSITIONS.forEach((a) =>
-    out.push({ key: `sheep:${a.index}`, group: "sheep", id: String(a.index), x: a.x, y: a.y, w: 1, h: 1, color: "#e5e7eb", label: "s" })
+    out.push({ key: `sheep:${a.index}`, group: "sheep", id: String(a.index), x: a.x, y: a.y, w: 2, h: 2, color: "#e5e7eb", label: "s", sprite: "/assets/animals/sheep.gif" })
   );
   FISHING_POSITIONS.forEach((f) =>
-    out.push({
-      key: `fishing:${f.id}`,
-      group: "fishingAnchors",
-      id: f.id,
-      x: f.anchorTile.x,
-      y: f.anchorTile.y,
-      w: 1,
-      h: 1,
-      color: "#0ea5e9",
-      label: "F",
-    })
+    out.push({ key: `fishing:${f.id}`, group: "fishingAnchors", id: f.id, x: f.anchorTile.x, y: f.anchorTile.y, w: 1, h: 1, color: "#0ea5e9", label: "F" })
   );
   out.push({
     key: "barnZone",
@@ -101,7 +103,7 @@ function buildMarkers(): Marker[] {
     w: BARN_ZONE.width,
     h: BARN_ZONE.height,
     color: "#0f766e",
-    label: "barn",
+    label: "barn zone",
   });
   return out;
 }
@@ -109,11 +111,17 @@ function buildMarkers(): Marker[] {
 function MapEditor() {
   const [markers, setMarkers] = useState<Marker[]>(() => buildMarkers());
   const [dragKey, setDragKey] = useState<string | null>(null);
+  const [moved, setMoved] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [hidden, setHidden] = useState<Record<string, boolean>>({});
   const [mapSize, setMapSize] = useState({ w: 40, h: 40 });
+  const [zoom, setZoom] = useState(2);
+  const [drawerOpen, setDrawerOpen] = useState(true);
+  const [showGrid, setShowGrid] = useState(true);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
+
+  const PX = PX_BASE * zoom;
 
   useEffect(() => {
     let cancelled = false;
@@ -127,8 +135,8 @@ function MapEditor() {
       await img.decode();
       const canvas = canvasRef.current;
       if (!canvas || cancelled) return;
-      canvas.width = map.width * PX;
-      canvas.height = map.height * PX;
+      canvas.width = map.width * TILE;
+      canvas.height = map.height * TILE;
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
       ctx.imageSmoothingEnabled = false;
@@ -141,24 +149,10 @@ function MapEditor() {
           if (!gid) continue;
           const sx = ((gid - 1) % cols) * TILE;
           const sy = Math.floor((gid - 1) / cols) * TILE;
-          const dx = (i % map.width) * PX;
-          const dy = Math.floor(i / map.width) * PX;
-          ctx.drawImage(img, sx, sy, TILE, TILE, dx, dy, PX, PX);
+          const dx = (i % map.width) * TILE;
+          const dy = Math.floor(i / map.width) * TILE;
+          ctx.drawImage(img, sx, sy, TILE, TILE, dx, dy, TILE, TILE);
         }
-      }
-      ctx.strokeStyle = "rgba(0,0,0,0.12)";
-      ctx.lineWidth = 1;
-      for (let x = 0; x <= map.width; x += 1) {
-        ctx.beginPath();
-        ctx.moveTo(x * PX + 0.5, 0);
-        ctx.lineTo(x * PX + 0.5, map.height * PX);
-        ctx.stroke();
-      }
-      for (let y = 0; y <= map.height; y += 1) {
-        ctx.beginPath();
-        ctx.moveTo(0, y * PX + 0.5);
-        ctx.lineTo(map.width * PX, y * PX + 0.5);
-        ctx.stroke();
       }
     }
     void draw();
@@ -174,9 +168,15 @@ function MapEditor() {
       if (!rect) return;
       const tx = Math.max(0, Math.floor((e.clientX - rect.left) / PX));
       const ty = Math.max(0, Math.floor((e.clientY - rect.top) / PX));
-      setMarkers((prev) => prev.map((m) => (m.key === dragKey ? { ...m, x: tx, y: ty } : m)));
+      setMarkers((prev) =>
+        prev.map((m) => {
+          if (m.key !== dragKey) return m;
+          if (m.x !== tx || m.y !== ty) setMoved(true);
+          return { ...m, x: tx, y: ty };
+        })
+      );
     },
-    [dragKey]
+    [dragKey, PX]
   );
 
   const groups = useMemo(() => Array.from(new Set(markers.map((m) => m.group))), [markers]);
@@ -204,105 +204,203 @@ function MapEditor() {
 
   const sel = markers.find((m) => m.key === selected) ?? null;
 
+  const patch = useCallback((key: string, field: "x" | "y" | "w" | "h", value: number) => {
+    setMarkers((prev) => prev.map((m) => (m.key === key ? { ...m, [field]: Math.max(field === "w" || field === "h" ? 1 : 0, value) } : m)));
+  }, []);
+
   return (
-    <main className="flex h-screen w-full flex-col gap-2 bg-background p-3 text-foreground lg:flex-row">
-      <div className="flex-1 overflow-auto rounded border border-border">
-        <div
-          ref={wrapRef}
-          className="relative"
-          style={{ width: mapSize.w * PX, height: mapSize.h * PX }}
-          onPointerMove={onPointerMove}
-          onPointerUp={() => setDragKey(null)}
-          onPointerLeave={() => setDragKey(null)}
-        >
-          <canvas ref={canvasRef} className="absolute left-0 top-0" />
-          {markers
-            .filter((m) => !hidden[m.group])
-            .map((m) => (
+    <main className="flex h-screen w-full overflow-hidden bg-background text-foreground">
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="flex flex-wrap items-center gap-2 border-b border-border p-2">
+          <h1 className="mr-2 text-sm font-bold">Map editor</h1>
+          <div className="flex items-center gap-1 text-xs">
+            <button type="button" onClick={() => setZoom((z) => Math.max(1, z - 1))} className="rounded border border-border px-2">
+              −
+            </button>
+            <span className="w-10 text-center">{zoom}×</span>
+            <button type="button" onClick={() => setZoom((z) => Math.min(4, z + 1))} className="rounded border border-border px-2">
+              +
+            </button>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowGrid((g) => !g)}
+            className={`rounded border border-border px-2 py-1 text-xs ${showGrid ? "" : "opacity-40"}`}
+          >
+            grid
+          </button>
+          <div className="flex flex-wrap gap-1">
+            {groups.map((g) => (
               <button
-                key={m.key}
+                key={g}
                 type="button"
-                onPointerDown={(e) => {
-                  e.preventDefault();
-                  setDragKey(m.key);
-                  setSelected(m.key);
-                }}
-                title={`${m.group} ${m.id} (${m.x}, ${m.y})`}
-                className="absolute flex items-center justify-center text-[10px] font-bold text-white"
-                style={{
-                  left: m.x * PX,
-                  top: m.y * PX,
-                  width: m.w * PX,
-                  height: m.h * PX,
-                  background: `${m.color}aa`,
-                  outline: selected === m.key ? "2px solid #fff" : "1px solid rgba(0,0,0,.5)",
-                  cursor: "grab",
-                  touchAction: "none",
-                }}
+                onClick={() => setHidden((h) => ({ ...h, [g]: !h[g] }))}
+                className={`rounded border border-border px-2 py-1 text-xs ${hidden[g] ? "opacity-40" : ""}`}
               >
-                {m.label}
+                {g}
               </button>
             ))}
+          </div>
+          <div className="ml-auto flex gap-2">
+            <button type="button" onClick={() => void navigator.clipboard.writeText(json)} className="rounded border border-border px-3 py-1 text-xs">
+              Copy JSON
+            </button>
+            <button type="button" onClick={() => setMarkers(buildMarkers())} className="rounded border border-border px-3 py-1 text-xs">
+              Reset
+            </button>
+            <button type="button" onClick={() => setDrawerOpen((d) => !d)} className="rounded border border-border px-3 py-1 text-xs">
+              {drawerOpen ? "Hide list" : "Show list"}
+            </button>
+          </div>
+        </header>
+
+        <div className="flex-1 overflow-auto">
+          <div
+            ref={wrapRef}
+            className="relative"
+            style={{ width: mapSize.w * PX, height: mapSize.h * PX }}
+            onPointerMove={onPointerMove}
+            onPointerUp={() => setDragKey(null)}
+            onPointerLeave={() => setDragKey(null)}
+            onPointerDown={(e) => {
+              if (e.target === e.currentTarget || e.target === canvasRef.current) setSelected(null);
+            }}
+          >
+            <canvas
+              ref={canvasRef}
+              className="absolute left-0 top-0 origin-top-left"
+              style={{ imageRendering: "pixelated", width: mapSize.w * PX, height: mapSize.h * PX }}
+            />
+            {showGrid ? (
+              <div
+                className="pointer-events-none absolute inset-0"
+                style={{
+                  backgroundImage:
+                    "linear-gradient(to right, rgba(0,0,0,.15) 1px, transparent 1px), linear-gradient(to bottom, rgba(0,0,0,.15) 1px, transparent 1px)",
+                  backgroundSize: `${PX}px ${PX}px`,
+                }}
+              />
+            ) : null}
+
+            {markers
+              .filter((m) => !hidden[m.group])
+              .map((m) => {
+                const active = selected === m.key;
+                return (
+                  <div key={m.key} className="absolute" style={{ left: m.x * PX, top: m.y * PX, width: m.w * PX, height: m.h * PX }}>
+                    <button
+                      type="button"
+                      onPointerDown={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setDragKey(m.key);
+                        setMoved(false);
+                        setSelected(m.key);
+                      }}
+                      onPointerUp={() => {
+                        if (!moved) setSelected(m.key);
+                      }}
+                      title={`${m.group} · ${m.id} (${m.x}, ${m.y})`}
+                      className="group absolute inset-0 flex items-center justify-center"
+                      style={{ cursor: "grab", touchAction: "none" }}
+                    >
+                      {m.sprite ? (
+                        <img
+                          src={m.sprite}
+                          alt={m.id}
+                          draggable={false}
+                          className="h-full w-full object-contain"
+                          style={{ imageRendering: "pixelated" }}
+                        />
+                      ) : null}
+                      <span
+                        className="absolute inset-0 transition-colors"
+                        style={{
+                          background: active ? `${m.color}55` : `${m.color}22`,
+                          outline: active ? "2px solid #fff" : `1px dashed ${m.color}`,
+                          boxShadow: active ? `0 0 0 2px ${m.color}` : undefined,
+                        }}
+                      />
+                      {!m.sprite ? (
+                        <span className="relative text-[10px] font-bold text-white drop-shadow">{m.label}</span>
+                      ) : null}
+                    </button>
+
+                    {active ? (
+                      <div
+                        className="absolute z-20 w-56 rounded border border-border bg-popover p-2 text-xs text-popover-foreground shadow-lg"
+                        style={{ left: m.w * PX + 8, top: 0 }}
+                        onPointerDown={(e) => e.stopPropagation()}
+                      >
+                        <div className="mb-2 font-semibold">
+                          {m.group} · {m.id}
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          {(["x", "y", "w", "h"] as const).map((f) => (
+                            <div key={f} className="flex items-center gap-1">
+                              <span className="w-3 uppercase">{f}</span>
+                              <button type="button" className="rounded border border-border px-1" onClick={() => patch(m.key, f, m[f] - 1)}>
+                                −
+                              </button>
+                              <input
+                                type="number"
+                                value={m[f]}
+                                onChange={(e) => patch(m.key, f, Number(e.target.value))}
+                                className="w-12 rounded border border-border bg-transparent px-1"
+                              />
+                              <button type="button" className="rounded border border-border px-1" onClick={() => patch(m.key, f, m[f] + 1)}>
+                                +
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                        <button type="button" onClick={() => setSelected(null)} className="mt-2 w-full rounded border border-border px-2 py-1">
+                          Close
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
+                );
+              })}
+          </div>
         </div>
       </div>
 
-      <aside className="flex w-full shrink-0 flex-col gap-2 lg:w-96">
-        <h1 className="text-lg font-bold">Map editor</h1>
-        <p className="text-xs text-muted-foreground">
-          Drag any marker to a new tile, then copy the JSON below and paste it in chat.
-        </p>
-        <div className="flex flex-wrap gap-1">
-          {groups.map((g) => (
-            <button
-              key={g}
-              type="button"
-              onClick={() => setHidden((h) => ({ ...h, [g]: !h[g] }))}
-              className={`rounded border border-border px-2 py-1 text-xs ${hidden[g] ? "opacity-40" : ""}`}
-            >
-              {g}
-            </button>
-          ))}
-        </div>
-
-        {sel ? (
-          <div className="rounded border border-border p-2 text-xs">
-            <div className="mb-1 font-semibold">
-              {sel.group} · {sel.id}
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {(["x", "y", "w", "h"] as const).map((f) => (
-                <label key={f} className="flex items-center gap-1">
-                  {f}
-                  <input
-                    type="number"
-                    value={sel[f]}
-                    onChange={(e) =>
-                      setMarkers((prev) =>
-                        prev.map((m) => (m.key === sel.key ? { ...m, [f]: Math.max(0, Number(e.target.value)) } : m))
-                      )
-                    }
-                    className="w-16 rounded border border-border bg-transparent px-1"
-                  />
-                </label>
-              ))}
-            </div>
+      <aside
+        className={`h-full shrink-0 overflow-hidden border-l border-border bg-card transition-all duration-300 ${
+          drawerOpen ? "w-96" : "w-0"
+        }`}
+      >
+        <div className="flex h-full w-96 flex-col gap-2 p-3">
+          <h2 className="text-sm font-bold">Assets</h2>
+          <p className="text-xs text-muted-foreground">Click a row to select it on the map; drag markers or use the popover to adjust.</p>
+          <div className="flex-1 overflow-auto rounded border border-border">
+            {groups.map((g) => (
+              <div key={g}>
+                <div className="sticky top-0 bg-muted px-2 py-1 text-xs font-semibold uppercase">{g}</div>
+                {markers
+                  .filter((m) => m.group === g)
+                  .map((m) => (
+                    <button
+                      key={m.key}
+                      type="button"
+                      onClick={() => setSelected(m.key)}
+                      className={`flex w-full items-center gap-2 border-b border-border px-2 py-1 text-left text-[11px] ${
+                        selected === m.key ? "bg-accent" : ""
+                      }`}
+                    >
+                      <span className="inline-block h-3 w-3 shrink-0 rounded-sm" style={{ background: m.color }} />
+                      <span className="flex-1 truncate font-mono">{m.id}</span>
+                      <span className="font-mono text-muted-foreground">
+                        x{m.x} y{m.y} w{m.w} h{m.h}
+                      </span>
+                    </button>
+                  ))}
+              </div>
+            ))}
           </div>
-        ) : null}
-
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => void navigator.clipboard.writeText(json)}
-            className="rounded border border-border px-3 py-1 text-sm"
-          >
-            Copy JSON
-          </button>
-          <button type="button" onClick={() => setMarkers(buildMarkers())} className="rounded border border-border px-3 py-1 text-sm">
-            Reset
-          </button>
+          <textarea readOnly value={json} className="h-40 shrink-0 rounded border border-border bg-transparent p-2 font-mono text-[10px]" />
         </div>
-
-        <textarea readOnly value={json} className="h-full min-h-64 flex-1 rounded border border-border bg-transparent p-2 font-mono text-[11px]" />
       </aside>
     </main>
   );
