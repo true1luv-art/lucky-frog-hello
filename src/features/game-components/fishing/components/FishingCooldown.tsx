@@ -54,7 +54,6 @@ export const FishingCooldown: React.FC = () => {
       const msg =
         detail.reason === "no-rod"    ? "Need a Fishing Rod" :
         detail.reason === "equip-rod" ? "Equip your Rod first" :
-        detail.reason === "stamina"   ? "Not enough stamina" :
         "Not ready yet";
       setGuardMessage(msg);
       setTimeout(() => setGuardMessage(null), 2500);
