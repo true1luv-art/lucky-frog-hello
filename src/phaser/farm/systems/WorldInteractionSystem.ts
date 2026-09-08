@@ -140,8 +140,14 @@ export class WorldInteractionSystem {
       const cx = x + width / 2;
       const cy = y + height / 2;
 
-      const sprite = this.scene.add.sprite(cx, cy, NPC_CONFIG.textureKey, 0);
-      if (this.scene.anims.exists(NPC_CONFIG.animKey)) sprite.play(NPC_CONFIG.animKey, true);
+      const customTexture = String(data.texture ?? "");
+      const useCustom = customTexture !== "" && this.scene.textures.exists(customTexture);
+      const sprite = this.scene.add.sprite(cx, cy, useCustom ? customTexture : NPC_CONFIG.textureKey, 0);
+      if (useCustom) {
+        sprite.setDisplaySize(width, height);
+      } else if (this.scene.anims.exists(NPC_CONFIG.animKey)) {
+        sprite.play(NPC_CONFIG.animKey, true);
+      }
       // Depth = feet Y so the NPC Y-sorts correctly against the player and resource nodes.
       const npcFeetY = y + height;
       sprite.setDepth(npcFeetY).setFlipX(data.facing === "left");
