@@ -5,7 +5,7 @@ import { dispatchUiEvent, isBuildingInRange } from "@/phaser/farm/helpers";
 import type { BuildingZoneNode, NpcNode, PlotNode } from "@/phaser/farm/types";
 import type { NpcPositionDef } from "@/phaser/positions/npcPositions";
 import type { ProximitySystem } from "@/phaser/systems/ProximitySystem";
-import { createNpc } from "@/phaser/entities/Npcs";
+import { createNpc } from "@/phaser/entities/npcs";
 
 interface WorldInteractionSystemOptions {
   buildingZones: BuildingZoneNode[];

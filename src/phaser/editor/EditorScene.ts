@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import { GAME_CONFIG } from "@/phaser/config/GameConfig";
 import { FarmAssetLoader } from "@/phaser/loaders/FarmAssetLoader";
 import { NpcAssetLoader } from "@/phaser/loaders/NpcAssetLoader";
-import { createNpcSprite } from "@/phaser/entities/Npcs";
+import { createNpcSprite } from "@/phaser/entities/npcs";
 import { AnimationSystem } from "@/phaser/systems/AnimationSystem";
 import {
   BARN_ZONE,
