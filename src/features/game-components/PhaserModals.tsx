@@ -69,7 +69,7 @@ function useGameModalState() {
   useEffect(() => {
     const handlers: [string, EventListener][] = [];
 
-    for (const key of GAME_MODAL_KEYS) {
+    for (const [buildingType, key] of Object.entries(GAME_MODAL_EVENTS)) {
       const openHandler: EventListener = () => {
         playGameSfx(key);
         setActiveModal(key);
@@ -77,11 +77,11 @@ function useGameModalState() {
       const closeHandler: EventListener = () =>
         setActiveModal((curr) => (curr === key ? null : curr));
 
-      window.addEventListener(`phaser-${key}-open`,  openHandler);
-      window.addEventListener(`phaser-${key}-close`, closeHandler);
+      window.addEventListener(`phaser-${buildingType}-open`,  openHandler);
+      window.addEventListener(`phaser-${buildingType}-close`, closeHandler);
       handlers.push(
-        [`phaser-${key}-open`,  openHandler],
-        [`phaser-${key}-close`, closeHandler],
+        [`phaser-${buildingType}-open`,  openHandler],
+        [`phaser-${buildingType}-close`, closeHandler],
       );
     }
 
