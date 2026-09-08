@@ -438,22 +438,48 @@ function MapEditor() {
                 <div className="sticky top-0 bg-muted px-2 py-1 text-xs font-semibold uppercase">{g}</div>
                 {markers
                   .filter((m) => m.group === g)
-                  .map((m) => (
-                    <button
-                      key={m.key}
-                      type="button"
-                      onClick={() => setSelected(m.key)}
-                      className={`flex w-full items-center gap-2 border-b border-border px-2 py-1 text-left text-[11px] ${
-                        selected === m.key ? "bg-accent" : ""
-                      }`}
-                    >
-                      <span className="inline-block h-3 w-3 shrink-0 rounded-sm" style={{ background: m.color }} />
-                      <span className="flex-1 truncate font-mono">{m.id}</span>
-                      <span className="font-mono text-muted-foreground">
-                        x{m.x} y{m.y} w{m.w} h{m.h}
-                      </span>
-                    </button>
-                  ))}
+                  .map((m) => {
+                    const offMap = m.x + m.w > mapSize.w || m.y + m.h > mapSize.h;
+                    return (
+                      <div
+                        key={m.key}
+                        className={`flex w-full items-center gap-2 border-b border-border px-2 py-1 text-left text-[11px] ${
+                          selected === m.key ? "bg-accent" : ""
+                        }`}
+                      >
+                        <button type="button" onClick={() => focusMarker(m.key)} className="flex min-w-0 flex-1 items-center gap-2 text-left">
+                          <span className="inline-block h-3 w-3 shrink-0 rounded-sm" style={{ background: m.color }} />
+                          <span className="flex-1 truncate font-mono">{m.id}</span>
+                          <span className="font-mono text-muted-foreground">
+                            x{m.x} y{m.y} w{m.w} h{m.h}
+                          </span>
+                        </button>
+                        {offMap ? (
+                          <button
+                            type="button"
+                            title="This asset sits outside the map — move it inside"
+                            onClick={() => {
+                              setMarkers((prev) =>
+                                prev.map((n) =>
+                                  n.key === m.key
+                                    ? {
+                                        ...n,
+                                        x: Math.min(n.x, Math.max(0, mapSize.w - n.w)),
+                                        y: Math.min(n.y, Math.max(0, mapSize.h - n.h)),
+                                      }
+                                    : n
+                                )
+                              );
+                              focusMarker(m.key);
+                            }}
+                            className="shrink-0 rounded border border-border px-1 text-[10px] text-destructive"
+                          >
+                            off-map
+                          </button>
+                        ) : null}
+                      </div>
+                    );
+                  })}
               </div>
             ))}
           </div>
