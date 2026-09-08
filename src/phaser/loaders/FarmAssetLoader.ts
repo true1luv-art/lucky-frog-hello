@@ -53,7 +53,7 @@ export const FarmAssetLoader = {
 
     scene.load.image('building_house',        'assets/buildings/house.png')
     scene.load.image('building_market',       'assets/buildings/market_building.png')
-    scene.load.image('building_kitchen',      'assets/buildings/firepit.png')
+    scene.load.image('building_firepit',      'assets/buildings/firepit.png')
     scene.load.image('building_blacksmith',   'assets/buildings/blacksmith_building.png')
     scene.load.image('building_bank',         'assets/buildings/tailor.gif')
     scene.load.image('building_wishing_well', 'assets/buildings/wishing_well.png')

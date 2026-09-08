@@ -44,7 +44,8 @@ type Marker = {
 const BUILDING_SPRITES: Record<string, string> = {
   house: "/assets/buildings/house.png",
   market: "/assets/buildings/market_building.png",
-  kitchen: "/assets/buildings/kitchen_building.png",
+  firepit_1: "/assets/buildings/firepit.png",
+  firepit_2: "/assets/buildings/firepit.png",
   blacksmith: "/assets/buildings/blacksmith_building.png",
   bank: "/assets/buildings/tailor.gif",
   wishing_well: "/assets/buildings/wishing_well.png",
