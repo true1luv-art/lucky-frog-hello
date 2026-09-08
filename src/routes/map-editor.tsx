@@ -96,7 +96,7 @@ function MapEditor() {
   const [dragKey, setDragKey] = useState<string | null>(null);
   const [moved, setMoved] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
-  const [hidden, setHidden] = useState<Record<string, boolean>>({});
+  const [jsonGroup, setJsonGroup] = useState<Group | null>(null);
   const [mapSize, setMapSize] = useState({ w: 40, h: 40 });
   const [showGrid, setShowGrid] = useState(true);
   const [showJson, setShowJson] = useState(false);
@@ -260,6 +260,30 @@ function MapEditor() {
     );
   }, [markers]);
 
+  const filteredJson = useMemo(() => {
+    if (!jsonGroup) return json;
+    const get = (g: Group) => markers.filter((m) => m.group === g);
+    let data: Record<string, unknown> = {};
+    switch (jsonGroup) {
+      case "trees":
+        data = { trees: get("trees").map((m) => ({ id: m.id, x: m.x, y: m.y })) };
+        break;
+      case "stones":
+        data = { stones: get("stones").map((m) => ({ id: m.id, x: m.x, y: m.y })) };
+        break;
+      case "plots":
+        data = { plots: get("plots").map((m, i) => ({ id: m.id, fieldIndex: PLOT_POSITIONS[i]?.fieldIndex ?? i, x: m.x, y: m.y })) };
+        break;
+      case "buildings":
+        data = { buildings: get("buildings").map((m) => ({ type: m.id, x: m.x, y: m.y, width: m.w, height: m.h })) };
+        break;
+      case "npcs":
+        data = { npcs: get("npcs").map((m) => ({ id: m.id, x: m.x, y: m.y, width: m.w, height: m.h })) };
+        break;
+    }
+    return JSON.stringify(data, null, 2);
+  }, [jsonGroup, json, markers]);
+
   const patch = useCallback((key: string, field: "x" | "y" | "w" | "h", value: number) => {
     setMarkers((prev) => prev.map((m) => (m.key === key ? { ...m, [field]: Math.max(field === "w" || field === "h" ? 1 : 0, value) } : m)));
   }, []);
@@ -320,59 +344,60 @@ function MapEditor() {
             />
           ) : null}
 
-          {markers
-            .filter((m) => !hidden[m.group])
-            .map((m) => {
-              const active = selected === m.key;
-              return (
-                <div key={m.key} className="absolute" style={{ left: m.x * PX, top: m.y * PX, width: m.w * PX, height: m.h * PX }}>
-                  <button
-                    type="button"
-                    onPointerDown={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      const rect = wrapRef.current?.getBoundingClientRect();
-                      dragOff.current = rect
-                        ? { dx: Math.floor((e.clientX - rect.left) / PX) - m.x, dy: Math.floor((e.clientY - rect.top) / PX) - m.y }
-                        : { dx: 0, dy: 0 };
-                      setDragKey(m.key);
-                      setMoved(false);
-                      setSelected(m.key);
+          {markers.map((m) => {
+            const active = selected === m.key;
+            return (
+              <div key={m.key} className="absolute" style={{ left: m.x * PX, top: m.y * PX, width: m.w * PX, height: m.h * PX }}>
+                <button
+                  type="button"
+                  onPointerDown={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const rect = wrapRef.current?.getBoundingClientRect();
+                    dragOff.current = rect
+                      ? { dx: Math.floor((e.clientX - rect.left) / PX) - m.x, dy: Math.floor((e.clientY - rect.top) / PX) - m.y }
+                      : { dx: 0, dy: 0 };
+                    setDragKey(m.key);
+                    setMoved(false);
+                    setSelected(m.key);
+                  }}
+                  onPointerUp={() => {
+                    if (!moved) setSelected(m.key);
+                  }}
+                  title={`${m.group} · ${m.id} (${m.x}, ${m.y})`}
+                  className="absolute inset-0 flex items-center justify-center"
+                  style={{ cursor: "grab", touchAction: "none" }}
+                >
+                  {m.sprite ? (
+                    <img src={m.sprite} alt={m.id} draggable={false} className="h-full w-full object-contain" style={{ imageRendering: "pixelated" }} />
+                  ) : null}
+                  <span
+                    className="absolute inset-0 transition-colors"
+                    style={{
+                      background: active ? `${m.color}55` : `${m.color}22`,
+                      outline: active ? "2px solid #fff" : `1px dashed ${m.color}`,
                     }}
-                    onPointerUp={() => {
-                      if (!moved) setSelected(m.key);
-                    }}
-                    title={`${m.group} · ${m.id} (${m.x}, ${m.y})`}
-                    className="absolute inset-0 flex items-center justify-center"
-                    style={{ cursor: "grab", touchAction: "none" }}
-                  >
-                    {m.sprite ? (
-                      <img src={m.sprite} alt={m.id} draggable={false} className="h-full w-full object-contain" style={{ imageRendering: "pixelated" }} />
-                    ) : null}
-                    <span
-                      className="absolute inset-0 transition-colors"
-                      style={{
-                        background: active ? `${m.color}55` : `${m.color}22`,
-                        outline: active ? "2px solid #fff" : `1px dashed ${m.color}`,
-                      }}
-                    />
-                    {!m.sprite ? <span className="relative text-[10px] font-bold text-white drop-shadow">{m.label}</span> : null}
-                  </button>
-                </div>
-              );
-            })}
+                  />
+                  {!m.sprite ? <span className="relative text-[10px] font-bold text-white drop-shadow">{m.label}</span> : null}
+                </button>
+              </div>
+            );
+          })}
         </div>
       </div>
 
-      {/* Floating asset filter buttons */}
+      {/* Floating asset buttons - show JSON for each group */}
       <div className="pointer-events-auto absolute left-3 top-3 flex flex-wrap items-center gap-2 rounded-lg bg-black/70 p-2 text-xs text-white backdrop-blur">
         <span className="font-bold">Map editor</span>
         {groups.map((g) => (
           <button
             key={g}
             type="button"
-            onClick={() => setHidden((h) => ({ ...h, [g]: !h[g] }))}
-            className={`rounded border border-white/30 px-2 py-1 ${hidden[g] ? "opacity-40" : "bg-white/15"}`}
+            onClick={() => {
+              setJsonGroup(g);
+              setShowJson(true);
+            }}
+            className={`rounded border border-white/30 px-2 py-1 ${jsonGroup === g && showJson ? "bg-white/40" : "bg-white/15"}`}
           >
             {GROUP_LABEL[g]}
           </button>
@@ -387,7 +412,7 @@ function MapEditor() {
         <button
           type="button"
           onClick={() => {
-            void navigator.clipboard.writeText(json);
+            void navigator.clipboard.writeText(jsonGroup ? filteredJson : json);
             setCopied(true);
             window.setTimeout(() => setCopied(false), 1500);
           }}
@@ -395,7 +420,18 @@ function MapEditor() {
         >
           {copied ? "Copied!" : "Copy JSON"}
         </button>
-        <button type="button" onClick={() => setShowJson((s) => !s)} className={`rounded border border-white/30 px-2 py-1 ${showJson ? "bg-white/15" : ""}`}>
+        <button
+          type="button"
+          onClick={() => {
+            if (showJson && jsonGroup === null) {
+              setShowJson(false);
+            } else {
+              setJsonGroup(null);
+              setShowJson(true);
+            }
+          }}
+          className={`rounded border border-white/30 px-2 py-1 ${showJson ? "bg-white/15" : ""}`}
+        >
           JSON
         </button>
         <button type="button" onClick={() => setMarkers(buildMarkers())} className="rounded border border-white/30 px-2 py-1">
@@ -439,7 +475,13 @@ function MapEditor() {
       {/* Floating JSON output */}
       {showJson ? (
         <div className="absolute bottom-3 right-3 w-80 rounded-lg bg-black/80 p-2 text-white backdrop-blur">
-          <textarea readOnly value={json} className="h-64 w-full resize-none rounded bg-transparent p-1 font-mono text-[10px]" />
+          <div className="mb-1 flex items-center justify-between px-1">
+            <span className="text-[10px] font-semibold uppercase text-white/70">{jsonGroup ? `${GROUP_LABEL[jsonGroup]} JSON` : "All JSON"}</span>
+            <button type="button" onClick={() => setShowJson(false)} className="rounded border border-white/30 px-1.5 text-[10px]">
+              ✕
+            </button>
+          </div>
+          <textarea readOnly value={jsonGroup ? filteredJson : json} className="h-64 w-full resize-none rounded bg-transparent p-1 font-mono text-[10px]" />
         </div>
       ) : null}
     </main>
