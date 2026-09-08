@@ -105,10 +105,15 @@ export class EditorScene extends Phaser.Scene {
     this.cameras.main.setZoom(GAME_CONFIG.ZOOM);
     this.cameras.main.centerOn(worldW / 2, worldH / 2);
 
-    this.grid = this.add
-      .grid(0, 0, worldW, worldH, TILE, TILE, undefined, 0, 0xffffff, 0.12)
-      .setOrigin(0, 0)
-      .setDepth(GRID_DEPTH);
+    // Sub-thin grid lines (fractional world px so they stay hairline at 4x zoom)
+    this.grid = this.add.graphics().setDepth(GRID_DEPTH);
+    this.grid.lineStyle(0.3, 0xffffff, 0.35);
+    for (let x = 0; x <= worldW; x += TILE) {
+      this.grid.lineBetween(x, 0, x, worldH);
+    }
+    for (let y = 0; y <= worldH; y += TILE) {
+      this.grid.lineBetween(0, y, worldW, y);
+    }
 
     this.ranchOutline = this.add
       .rectangle(
