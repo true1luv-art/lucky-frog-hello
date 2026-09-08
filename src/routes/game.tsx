@@ -5,7 +5,6 @@ import { AudioProvider } from "@/context/AudioContext";
 import { PlayerProvider } from "@/context/PlayerContext";
 import { useSession } from "@/features/game-stores/useSession";
 
-import "bootstrap/dist/css/bootstrap.min.css";
 
 const PhaserCanvas = lazy(() => import("@/phaser/PhaserCanvas"));
 
