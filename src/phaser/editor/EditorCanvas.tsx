@@ -56,7 +56,7 @@ export default function EditorCanvas() {
   const [counts, setCounts] = useState<Record<AnimalKind, number>>({ chicken: 0, cow: 0, sheep: 0 });
   const [walking, setWalking] = useState(true);
   const [grid, setGrid] = useState(true);
-  const [labels, setLabels] = useState(true);
+  
   const [jsonGroup, setJsonGroup] = useState<EditorGroup | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -133,12 +133,6 @@ export default function EditorCanvas() {
         <div className="flex flex-wrap gap-1">
           <button type="button" className={button} onClick={() => { setGrid(!grid); editorBus.emit("cmd:grid", { show: !grid }); }}>
             Grid {grid ? "on" : "off"}
-          </button>
-          <button type="button" className={button} onClick={() => { setLabels(!labels); editorBus.emit("cmd:labels", { show: !labels }); }}>
-            Labels {labels ? "on" : "off"}
-          </button>
-          <button type="button" className={button} onClick={() => editorBus.emit("cmd:zoom", { zoom: 4 })}>
-            Zoom 4x
           </button>
           <button type="button" className={button} onClick={() => editorBus.emit("cmd:reset", {})}>
             Reset
