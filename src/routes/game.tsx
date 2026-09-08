@@ -1,5 +1,5 @@
 import { createFileRoute, ClientOnly, useNavigate } from "@tanstack/react-router";
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 
 import { AudioProvider } from "@/context/AudioContext";
 import { PlayerProvider } from "@/context/PlayerContext";
@@ -40,7 +40,9 @@ function Loading() {
 function GamePage() {
   const navigate = useNavigate();
   const username = useSession((s) => s.username);
-  const hydrated = useSession.persist?.hasHydrated?.() ?? true;
+  const [hydrated, setHydrated] = useState(() => useSession.persist.hasHydrated());
+
+  useEffect(() => useSession.persist.onFinishHydration(() => setHydrated(true)), []);
 
   useEffect(() => {
     if (hydrated && !username) void navigate({ to: "/" });
