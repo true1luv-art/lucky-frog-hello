@@ -225,24 +225,25 @@ input[type="number"] {
 }
 
 /* ModalShell size tiers — docs/modal-redesign-plan.md §2.1 */
-.modal-shell-toast {
+.modal-dialog.modal-shell-toast {
   max-width: 360px;
   width: auto;
   margin-left: auto;
   margin-right: auto;
 }
 
-.modal-shell-panel {
+.modal-dialog.modal-shell-panel {
   max-width: min(92vw, 720px);
   width: min(92vw, 720px);
 }
 
-.modal-shell-fullscreen {
+.modal-dialog.modal-shell-fullscreen {
   margin: 0;
   max-width: none;
   width: 100vw;
   height: 100dvh;
 }
+
 
 .modal-shell-fullscreen .modal-content {
   height: 100%;
