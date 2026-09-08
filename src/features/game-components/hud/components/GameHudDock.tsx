@@ -45,6 +45,13 @@ export function GameHudDock({ wallet }: { wallet?: string }) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [shortcuts, setShortcuts] = useState(() => getShortcuts());
 
+  // Equipping from the inventory, market or a slot rewrites the cached
+  // shortcut list — re-read it so the dock always shows the current tools.
+  useEffect(() => {
+    setShortcuts(getShortcuts());
+  }, [selectedItem]);
+
+
   const maxHealth = getMaxHp(state.farmLevel);
   const health = Math.max(0, Math.min(maxHealth, state.hp ?? maxHealth));
   const healthPct = (health / maxHealth) * 100;
