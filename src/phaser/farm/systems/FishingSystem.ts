@@ -94,8 +94,10 @@ export class FishingSystem {
         return;
       }
     }
-    const sprite = this.options.player()?.sprite;
-    if (!sprite) return;
+    const player = this.options.player();
+    const sprite = player?.sprite;
+    if (!player || !sprite) return;
+    this.faceZone(player, spot);
     this.casting = true;
     const hasAnimation = (key: string) => this.scene.anims.exists(key);
     window.dispatchEvent(new CustomEvent("phaser-fishing-start", {
@@ -118,6 +120,39 @@ export class FishingSystem {
     if (this.nearZone) window.dispatchEvent(new CustomEvent("phaser-fishing-zone-exit"));
     this.nearZone = false;
     this.casting = false;
+  }
+
+  /** Turns the player toward the nearest water tile of the fishing zone. */
+  private faceZone(player: Player, spot: FishingNode): void {
+    const tiles = spot.tiles;
+    if (!tiles || tiles.size === 0) return;
+    const ts = GAME_CONFIG.TILE_SIZE;
+    const px = player.sprite.x;
+    const py = player.sprite.y;
+
+    let bestDist = Infinity;
+    let bestX = px;
+    let bestY = py;
+    for (const key of tiles) {
+      const [tx, ty] = key.split(",").map(Number);
+      const cx = tx * ts + ts / 2;
+      const cy = ty * ts + ts / 2;
+      const dist = (cx - px) ** 2 + (cy - py) ** 2;
+      if (dist < bestDist) {
+        bestDist = dist;
+        bestX = cx;
+        bestY = cy;
+      }
+    }
+
+    const dx = bestX - px;
+    const dy = bestY - py;
+    if (Math.abs(dx) >= Math.abs(dy)) {
+      player.facing = dx < 0 ? "left" : "right";
+      player.sprite.setFlipX(dx < 0);
+    } else {
+      player.facing = dy < 0 ? "up" : "down";
+    }
   }
 
   private get spot(): FishingNode | undefined {
