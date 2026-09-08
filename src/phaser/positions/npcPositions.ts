@@ -17,14 +17,15 @@ export interface NpcPositionDef {
  */
 export const NPC_POSITIONS: NpcPositionDef[] = [
   {
-    id: 'npc_barnKeeper',
+    id: 'npc_rancher',
     x: 20,
     y: 24,
     width: 2,
     height: 2,
     facing: 'right',
+    texture: 'npc_rancher',
     event: 'phaser-barn-open',
-    name: 'Barn Keeper',
+    name: 'Rancher',
   },
   {
     id: 'npc_trader',
@@ -33,6 +34,7 @@ export const NPC_POSITIONS: NpcPositionDef[] = [
     width: 2,
     height: 2,
     facing: 'right',
+    texture: 'npc_trader',
     event: 'phaser-trader-open',
     name: 'Trader',
   },

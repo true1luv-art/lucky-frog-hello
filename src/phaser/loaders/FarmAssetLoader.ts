@@ -1,4 +1,6 @@
 import type Phaser from 'phaser'
+import rancherAsset from '@/assets/npcs/rancher_strip9.png.asset.json'
+import traderAsset from '@/assets/npcs/trader_strip9.png.asset.json'
 
 export const FarmAssetLoader = {
   load(scene: Phaser.Scene) {
@@ -63,6 +65,8 @@ export const FarmAssetLoader = {
     scene.load.spritesheet('animal_cow',     'assets/phaser/sprites/animals/spr_deco_cow_strip4.png',        { frameWidth: 32, frameHeight: 32 })
 
     scene.load.spritesheet('npc_blacksmith', 'assets/npcs/blacksmith.png', { frameWidth: 84, frameHeight: 56 })
+    scene.load.spritesheet('npc_rancher', rancherAsset.url, { frameWidth: 96, frameHeight: 64 })
+    scene.load.spritesheet('npc_trader', traderAsset.url, { frameWidth: 96, frameHeight: 64 })
 
     scene.load.image('icon_player',  'assets/icons/player.png')
     scene.load.image('icon_plant',   'assets/icons/plant.png')
