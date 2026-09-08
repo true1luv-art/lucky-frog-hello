@@ -36,4 +36,15 @@ export const NPC_POSITIONS: NpcPositionDef[] = [
     event: 'phaser-trader-open',
     name: 'Trader',
   },
+  {
+    id: 'npc_blacksmith',
+    x: 34,
+    y: 7,
+    width: 6,
+    height: 4,
+    facing: 'right',
+    texture: 'npc_blacksmith',
+    event: 'phaser-blacksmith-open',
+    name: 'Blacksmith',
+  },
 ]
