@@ -92,7 +92,7 @@ export function GameHudDock({ wallet }: { wallet?: string }) {
 
       {/* ── Bottom-center dock: health, stamina, shortcuts, inventory ── */}
       <div className="pointer-events-none fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom,0px)+0.5rem)] z-40 flex justify-center px-1 select-none">
-        <div className="grid grid-cols-[3rem_minmax(0,14rem)_3rem] items-end gap-1 sm:grid-cols-[4rem_minmax(0,18rem)_4rem] sm:gap-2">
+        <div className="grid grid-cols-[3rem_minmax(0,12rem)_3rem] items-end gap-1 sm:grid-cols-[4rem_minmax(0,16rem)_4rem] sm:gap-2">
           <div
             className="relative grid h-12 w-12 place-items-center sm:h-16 sm:w-16"
             title={`Health: ${maxHealth}/${maxHealth}`}
