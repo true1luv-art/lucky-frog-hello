@@ -201,7 +201,7 @@ export class EditorScene extends Phaser.Scene {
       add("buildings", b.type, b.x, b.y, b.width, b.height, BUILDING_TEXTURE[b.type]),
     );
     NPC_POSITIONS.forEach((n) =>
-      add("npcs", n.id, n.x, n.y, n.width, n.height, "icon_player"),
+      add("npcs", n.id, n.x, n.y, n.width, n.height, n.texture ?? "icon_player"),
     );
   }
 
