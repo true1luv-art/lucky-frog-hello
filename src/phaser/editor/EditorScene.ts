@@ -65,7 +65,7 @@ interface EditorAnimal {
 export class EditorScene extends Phaser.Scene {
   private markers: MarkerEntry[] = [];
   private animals: EditorAnimal[] = [];
-  private grid?: Phaser.GameObjects.Grid;
+  private grid?: Phaser.GameObjects.Graphics;
   private ranchOutline?: Phaser.GameObjects.Rectangle;
   private selectedKey: string | null = null;
   private dragKey: string | null = null;
