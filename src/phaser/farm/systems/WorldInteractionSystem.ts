@@ -145,6 +145,19 @@ export class WorldInteractionSystem {
       const sprite = this.scene.add.sprite(cx, cy, useCustom ? customTexture : NPC_CONFIG.textureKey, 0);
       if (useCustom) {
         sprite.setDisplaySize(width, height);
+        const frameTotal = this.scene.textures.get(customTexture).frameTotal - 1;
+        if (frameTotal > 1) {
+          const animKey = `${customTexture}_idle`;
+          if (!this.scene.anims.exists(animKey)) {
+            this.scene.anims.create({
+              key: animKey,
+              frames: this.scene.anims.generateFrameNumbers(customTexture, { start: 0, end: frameTotal - 1 }),
+              frameRate: 10,
+              repeat: -1,
+            });
+          }
+          sprite.play(animKey, true);
+        }
       } else if (this.scene.anims.exists(NPC_CONFIG.animKey)) {
         sprite.play(NPC_CONFIG.animKey, true);
       }
