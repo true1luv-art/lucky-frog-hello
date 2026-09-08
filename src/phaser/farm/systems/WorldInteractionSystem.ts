@@ -5,6 +5,7 @@ import { dispatchUiEvent, isBuildingInRange } from "@/phaser/farm/helpers";
 import type { BuildingZoneNode, NpcNode, PlotNode } from "@/phaser/farm/types";
 import type { NpcPositionDef } from "@/phaser/positions/npcPositions";
 import type { ProximitySystem } from "@/phaser/systems/ProximitySystem";
+import { createNpc } from "@/phaser/entities/Npcs";
 
 interface WorldInteractionSystemOptions {
   buildingZones: BuildingZoneNode[];
@@ -34,12 +35,6 @@ const BUILDING_SFX: Record<string, string> = {
   house: "sfx_home_door",
   market: "sfx_shop",
   barn: "sfx_barn",
-};
-
-const NPC_IDLE_FRAME_RATE: Record<string, number> = {
-  npc_rancher: 6,
-  npc_trader: 6,
-  npc_blacksmith: 10,
 };
 
 /** Owns world actor presentation, modal range tracking, and world-level UI events. */
@@ -138,51 +133,8 @@ export class WorldInteractionSystem {
   private spawnNpcs(): void {
     const tileSize = GAME_CONFIG.TILE_SIZE;
     for (const definition of this.options.npcPositions) {
-      const data = definition as unknown as Record<string, number | string>;
-      const x = Number(data.x) * tileSize;
-      const y = Number(data.y) * tileSize;
-      const width = Number(data.width) * tileSize;
-      const height = Number(data.height) * tileSize;
-      const cx = x + width / 2;
-      const cy = y + height / 2;
-
-      const customTexture = String(data.texture ?? "");
-      const useCustom = customTexture !== "" && this.scene.textures.exists(customTexture);
-      const sprite = this.scene.add.sprite(cx, cy, useCustom ? customTexture : NPC_CONFIG.textureKey, 0);
-      if (useCustom) {
-        sprite.setDisplaySize(width, height);
-        const frameTotal = this.scene.textures.get(customTexture).frameTotal - 1;
-        if (frameTotal > 1) {
-          const animKey = `${customTexture}_idle`;
-          if (!this.scene.anims.exists(animKey)) {
-            this.scene.anims.create({
-              key: animKey,
-              frames: this.scene.anims.generateFrameNumbers(customTexture, { start: 0, end: frameTotal - 1 }),
-              frameRate: NPC_IDLE_FRAME_RATE[customTexture] ?? 6,
-              repeat: -1,
-            });
-          }
-          sprite.play(animKey, true);
-        }
-      } else if (this.scene.anims.exists(NPC_CONFIG.animKey)) {
-        sprite.play(NPC_CONFIG.animKey, true);
-      }
-      // Depth = feet Y so the NPC Y-sorts correctly against the player and resource nodes.
-      const npcFeetY = y + height;
-      sprite.setDepth(npcFeetY).setFlipX(data.facing === "left");
-
-      const node: NpcNode = {
-        id: String(data.id ?? ""),
-        texture: String(data.texture ?? ""),
-        event: String(data.event ?? ""),
-        name: String(data.name ?? "") || undefined,
-        x,
-        y,
-        width,
-        height,
-        sprite,
-      };
-      this.options.npcs[node.id] = node;
+      const npc = createNpc(this.scene, definition, tileSize);
+      this.options.npcs[npc.node.id] = npc.node;
     }
   }
 }
