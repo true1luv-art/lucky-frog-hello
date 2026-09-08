@@ -11,10 +11,4 @@ export const STONE_POSITIONS: ResourcePositionDef[] = [
   { id: 'stone_03', x: 18, y: 35 },
   { id: 'stone_04', x: 1,  y: 24 },
   { id: 'stone_05', x: 7,  y: 11 },
-  { id: 'stone_06', x: 33, y: 35 },
-  { id: 'stone_07', x: 26, y: 32 },
-  { id: 'stone_08', x: 7,  y: 13 },
-  { id: 'stone_09', x: 27, y: 4  },
-  { id: 'stone_10', x: 25, y: 12 },
-  { id: 'stone_11', x: 17, y: 2  },
 ]
