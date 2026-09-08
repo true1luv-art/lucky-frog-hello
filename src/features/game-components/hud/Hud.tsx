@@ -1,7 +1,6 @@
 import React, { useEffect } from "react";
 
-import { PlayerHud } from "@/features/game-components/hud/components/PlayerHud";
-import { Inventory } from "@/features/game-components/hud/components/Inventory";
+import { GameHudDock } from "@/features/game-components/hud/components/GameHudDock";
 import { VisitBanner } from "@/features/game-components/hud/components/VisitBanner";
 import { FishingCooldown } from "@/features/game-components/fishing/components/FishingCooldown";
 import { TutorialWizard } from "@/features/game-components/tutorial/TutorialWizard";
@@ -23,8 +22,7 @@ export const Hud: React.FC<{ wallet?: string }> = ({ wallet }) => {
 
   return (
     <div data-html2canvas-ignore="true" aria-label="Hud">
-      <PlayerHud wallet={wallet} />
-      <Inventory wallet={wallet} />
+      <GameHudDock wallet={wallet} />
       <VisitBanner />
       <FishingCooldown />
       <TutorialWizard />
