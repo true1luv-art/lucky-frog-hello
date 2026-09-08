@@ -94,8 +94,10 @@ export class FishingSystem {
         return;
       }
     }
-    const sprite = this.options.player()?.sprite;
-    if (!sprite) return;
+    const player = this.options.player();
+    const sprite = player?.sprite;
+    if (!player || !sprite) return;
+    this.faceZone(player, spot);
     this.casting = true;
     const hasAnimation = (key: string) => this.scene.anims.exists(key);
     window.dispatchEvent(new CustomEvent("phaser-fishing-start", {
