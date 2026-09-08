@@ -171,20 +171,18 @@ export class WorldSystem {
       map.createLayer(name, tileset, 0, 0)?.setDepth(depth) ?? null;
 
     // Farm render layers — bottom → top, matching farm.json layer order:
-    // grass, pond, path_2, path_1, bridge, dirt, fence, plots, barn,
-    // trees, decor_2, decor_1
-    make("grass",   0);
-    make("pond",    1);
-    make("path_2",  2);
-    make("path_1",  3);
-    make("bridge",  4);
-    make("dirt",    5);
-    make("fence",   6);
-    make("plots",   7);
-    make("barn",    8);
-    make("trees",   9);
-    make("decor_2", 10);
-    make("decor_1", 11);
+    // ground, dirt, trees, path_1, path_2, plots, pond, fence,
+    // decoration_1, decoration_2
+    make("ground",       0);
+    make("dirt",         1);
+    make("trees",        2);
+    make("path_1",       3);
+    make("path_2",       4);
+    make("plots",        5);
+    make("pond",         6);
+    make("fence",        7);
+    make("decoration_1", 8);
+    make("decoration_2", 9);
 
     // Boundary layer — invisible, used for player collision only
     const boundaryLayer = map.createLayer("boundary", tileset, 0, 0)?.setDepth(0)?.setVisible(false) ?? null;
@@ -193,21 +191,13 @@ export class WorldSystem {
       this.boundaryLayer = boundaryLayer;
     }
 
-    // boundary_barn is the animal enclosure zone — NOT a player collision wall.
+    // boundary_ranch is the animal enclosure zone — NOT a player collision wall.
     // We still create the layer so hasTileAt() queries work, but no collider.
-    const barnBoundary = map.createLayer("boundary_barn", tileset, 0, 0)?.setDepth(0)?.setVisible(false);
+    const barnBoundary = map.createLayer("boundary_ranch", tileset, 0, 0)?.setDepth(0)?.setVisible(false);
     this.barnBoundaryLayer = barnBoundary ?? null;
 
-    // Fishing boundary layer — invisible, defines castable tiles.
-    // farm.json uses "bondary_fishing" (note the typo in the original tilemap).
-    const fishingLayer = map.createLayer("bondary_fishing", tileset, 0, 0)?.setDepth(0)?.setVisible(false) ?? null;
-
-    // Named transition boundary layers — store for hasTileAt() queries (farm only)
-    const namedBoundaryNames = ["boundary_to_town"];
-    for (const name of namedBoundaryNames) {
-      const l = map.createLayer(name, tileset, 0, 0)?.setDepth(0)?.setVisible(false);
-      if (l) this.namedLayers[name] = l;
-    }
+    // Pond boundary layer — invisible, defines castable fishing tiles.
+    const fishingLayer = map.createLayer("boundary_pond", tileset, 0, 0)?.setDepth(0)?.setVisible(false) ?? null;
 
     return { fishingLayer, boundaryLayer };
   }
