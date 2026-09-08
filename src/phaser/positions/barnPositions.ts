@@ -4,10 +4,10 @@ export interface AnimalSpawnDef {
   y: number
 }
 
-// BARN_ZONE derived from the boundary_barn tile layer in farm.json.
+// BARN_ZONE derived from the boundary_ranch tile layer in farm.json.
 // This is the animal enclosure — the zone animals roam in, NOT a player
 // collision boundary. x/y/width/height are in tile coordinates.
-export const BARN_ZONE = { x: 1, y: 25, width: 19, height: 12 }
+export const BARN_ZONE = { x: 22, y: 28, width: 15, height: 8 }
 
 // All spawn tiles below are verified clear dirt inside the paddock.
 export const CHICKEN_SPAWN_POSITIONS: AnimalSpawnDef[] = [
