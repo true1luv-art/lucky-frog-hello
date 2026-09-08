@@ -22,6 +22,7 @@ import { TREE_RECOVERY_SECONDS } from "@/features/events/chop/chop";
 import { useGameStore }         from "@/features/game-stores/useGameStore";
 import { screenTracker }        from "@/features/utils/screen";
 import type { FishName }        from "@/features/types/gameplay/fish";
+import { FishCaughtModal }      from "@/features/game-components/fishing/FishCaughtModal";
 import {
   marketAudio,
   kitchenAudio,
