@@ -130,12 +130,6 @@ export function GameHudDock({ wallet }: { wallet?: string }) {
                     }`}
                     style={slotBorder}
                   >
-                    {isEquipped && (
-                      <span
-                        aria-hidden="true"
-                        className="pointer-events-none absolute inset-0 ring-2 ring-inset ring-gold"
-                      />
-                    )}
                     {image && (
                       <img
                         src={image}
