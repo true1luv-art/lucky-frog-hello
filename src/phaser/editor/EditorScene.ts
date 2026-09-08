@@ -123,7 +123,7 @@ export class EditorScene extends Phaser.Scene {
         BARN_ZONE.height * TILE,
       )
       .setOrigin(0, 0)
-      .setStrokeStyle(1, 0xfacc15, 0.9)
+      .setStrokeStyle(0.3, 0xfacc15, 0.9)
       .setDepth(GRID_DEPTH + 1);
 
     this.buildMarkers();
