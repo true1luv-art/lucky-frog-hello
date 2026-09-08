@@ -241,19 +241,17 @@ export class ResourceSystem {
     node.isDepleted = false;
     const centerX = node.x + GAME_CONFIG.TILE_SIZE;
     const centerY = node.y + GAME_CONFIG.TILE_SIZE;
-    // Depth = pixel Y of the node's feet so Y-sorting works:
-    // player depth is also set to sprite.y each frame so objects
-    // lower on screen always render in front.
-    const feetY = node.y + node.height;
+    // Fixed low depth — the player (Y-sorted to sprite.y each frame) always
+    // renders above stones and trees, never behind them.
     node.sprite = this.scene.add.image(centerX, centerY, this.scene.textures.exists(texture) ? texture : "__DEFAULT")
       .setDisplaySize(32, 32)
       .setOrigin(0.5)
-      .setDepth(feetY);
-    // Progress overlay always sits 1 above its node.
+      .setDepth(0);
+    // Progress overlay sits just above its node but still below the player.
     node.progressOverlay = this.scene.add.image(centerX, centerY + 21, "progress_quarter")
       .setDisplaySize(15, 7)
       .setOrigin(0.5)
-      .setDepth(feetY + 1)
+      .setDepth(1)
       .setVisible(false);
   }
 
