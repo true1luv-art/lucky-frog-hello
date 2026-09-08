@@ -1,6 +1,9 @@
 import Phaser from "phaser";
 import { GAME_CONFIG } from "@/phaser/config/GameConfig";
 import { FarmAssetLoader } from "@/phaser/loaders/FarmAssetLoader";
+import { NpcAssetLoader } from "@/phaser/loaders/NpcAssetLoader";
+import { createNpcSprite } from "@/phaser/entities/npcs";
+import { AnimationSystem } from "@/phaser/systems/AnimationSystem";
 import {
   BARN_ZONE,
   BUILDING_POSITIONS,
@@ -81,6 +84,7 @@ export class EditorScene extends Phaser.Scene {
 
   preload() {
     FarmAssetLoader.load(this);
+    NpcAssetLoader.load(this);
     this.load.on("loaderror", (file: Phaser.Loader.File) => {
       console.warn(`[EditorScene] missing asset skipped: ${file.key}`);
     });
@@ -126,6 +130,7 @@ export class EditorScene extends Phaser.Scene {
       .setStrokeStyle(0.3, 0xfacc15, 0.9)
       .setDepth(GRID_DEPTH + 1);
 
+    new AnimationSystem(this).createNpcAnimations();
     this.buildMarkers();
     this.createAnimalAnimations();
     this.bindInput();
@@ -155,6 +160,7 @@ export class EditorScene extends Phaser.Scene {
       w: number,
       h: number,
       texture?: string,
+      facing?: "left" | "right",
     ) => {
       const px = x * TILE;
       const py = y * TILE;
@@ -162,26 +168,19 @@ export class EditorScene extends Phaser.Scene {
       const npcTexture = texture ?? "";
       const animatedNpc = group === "npcs" && npcTexture.startsWith("npc_") && this.textures.exists(npcTexture);
       const sprite = animatedNpc
-        ? this.add.sprite(px, py, npcTexture, 0).setOrigin(0, 0).setDisplaySize(w * TILE, h * TILE)
+        ? createNpcSprite(this, {
+            x: px,
+            y: py,
+            width: w * TILE,
+            height: h * TILE,
+            texture: npcTexture,
+            facing,
+            origin: 0,
+          })
         : texture && this.textures.exists(texture)
           ? this.add.image(px, py, texture).setOrigin(0, 0).setDisplaySize(w * TILE, h * TILE)
           : this.add.rectangle(px, py, w * TILE, h * TILE, color, 0.5).setOrigin(0, 0);
       sprite.setDepth(MARKER_DEPTH);
-      if (sprite instanceof Phaser.GameObjects.Sprite && texture) {
-        const frameTotal = this.textures.get(texture).frameTotal - 1;
-        if (frameTotal > 1) {
-          const animKey = `editor_${texture}_idle`;
-          if (!this.anims.exists(animKey)) {
-            this.anims.create({
-              key: animKey,
-              frames: this.anims.generateFrameNumbers(texture, { start: 0, end: frameTotal - 1 }),
-              frameRate: texture === "npc_blacksmith" ? 10 : 6,
-              repeat: -1,
-            });
-          }
-          sprite.play(animKey, true);
-        }
-      }
 
       const outline = this.add
         .rectangle(px, py, w * TILE, h * TILE)
@@ -220,7 +219,7 @@ export class EditorScene extends Phaser.Scene {
       add("buildings", b.type, b.x, b.y, b.width, b.height, BUILDING_TEXTURE[b.type]),
     );
     NPC_POSITIONS.forEach((n) =>
-      add("npcs", n.id, n.x, n.y, n.width, n.height, n.texture ?? "icon_player"),
+      add("npcs", n.id, n.x, n.y, n.width, n.height, n.texture ?? "npc_base", n.facing),
     );
   }
 

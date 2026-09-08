@@ -3,6 +3,7 @@ import { MapAssetLoader }      from "@/phaser/loaders/MapAssetLoader";
 import { PlayerAssetLoader }   from "@/phaser/loaders/PlayerAssetLoader";
 import { FarmAssetLoader }     from "@/phaser/loaders/FarmAssetLoader";
 import { BuildingAssetLoader } from "@/phaser/loaders/BuildingAssetLoader";
+import { NpcAssetLoader }      from "@/phaser/loaders/NpcAssetLoader";
 
 /**
  * LoaderScene
@@ -22,6 +23,7 @@ export class LoaderScene extends Phaser.Scene {
     // Core map + player
     MapAssetLoader.load(this);
     PlayerAssetLoader.load(this);
+    NpcAssetLoader.load(this);
 
     // Full farm asset suite (tiles, resource nodes, crops, animals, UI corners,
     // audio) — mirrors hearthvale FarmAssetLoader exactly

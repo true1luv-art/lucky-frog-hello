@@ -15,8 +15,5 @@ export const PlayerAssetLoader = {
     scene.load.spritesheet('player_doing',   `${SPR}/frog_doing_strip8.png`,   { frameWidth: 94, frameHeight: FH })
     scene.load.spritesheet('player_casting', `${SPR}/frog_casting_strip15.png`,{ frameWidth: FW, frameHeight: FH })
     scene.load.spritesheet('player_caught',  `${SPR}/frog_caught_strip10.png`, { frameWidth: FW, frameHeight: FH })
-
-    // ── NPCs: also frogs, using the frog idle sheet ───────────────────────
-    scene.load.spritesheet('npc_base',       `${SPR}/frog_idle_strip9.png`,    { frameWidth: FW, frameHeight: FH })
   },
 }
