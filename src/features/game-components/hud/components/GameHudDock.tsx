@@ -90,21 +90,9 @@ export function GameHudDock({ wallet }: { wallet?: string }) {
         </div>
       </div>
 
-      {/* ── Bottom-center dock: health, stamina, shortcuts, inventory ── */}
+      {/* ── Bottom-center dock: stamina, hp, shortcuts, inventory ── */}
       <div className="pointer-events-none fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom,0px)+0.5rem)] z-40 flex justify-center px-1 select-none">
-        <div className="grid grid-cols-[3rem_minmax(0,9rem)_3rem] items-end gap-1 sm:grid-cols-[4rem_minmax(0,11rem)_4rem] sm:gap-2">
-          <div
-            className="relative grid h-12 w-12 place-items-center sm:h-16 sm:w-16"
-            title={`Health: ${maxHealth}/${maxHealth}`}
-            aria-label={`Health ${maxHealth} of ${maxHealth}`}
-          >
-            <img src={button} alt="" className="absolute inset-0 h-full w-full pixelated" />
-            <img src={heart} alt="" className="relative h-5 w-5 pixelated sm:h-7 sm:w-7" />
-            <span className="absolute -bottom-1 font-pixel text-[6px] text-primary-foreground text-outline sm:text-[7px]">
-              {maxHealth}
-            </span>
-          </div>
-
+        <div className="grid grid-cols-[minmax(0,9rem)_3rem] items-end gap-1 sm:grid-cols-[minmax(0,11rem)_4rem] sm:gap-2">
           <div className="flex min-w-0 flex-col items-center gap-1">
             <div className="flex w-full items-center gap-1 px-1">
               <img src={lightning} alt="" className="h-3.5 w-3.5 shrink-0 pixelated sm:h-4 sm:w-4" />
@@ -116,6 +104,19 @@ export function GameHudDock({ wallet }: { wallet?: string }) {
               </div>
               <span className="shrink-0 font-pixel text-[6px] text-primary-foreground text-outline sm:text-[7px]">
                 {stamina}/{maxStamina}
+              </span>
+            </div>
+
+            <div className="flex w-full items-center gap-1 px-1">
+              <img src={heart} alt="" className="h-3.5 w-3.5 shrink-0 pixelated sm:h-4 sm:w-4" />
+              <div className="h-3 min-w-0 flex-1 overflow-hidden border-2 border-brown-700 bg-foreground/60 p-0.5 sm:h-4">
+                <div
+                  className="h-full bg-red-500 transition-[width] duration-500"
+                  style={{ width: "100%" }}
+                />
+              </div>
+              <span className="shrink-0 font-pixel text-[6px] text-primary-foreground text-outline sm:text-[7px]">
+                {maxHealth}/{maxHealth}
               </span>
             </div>
 
