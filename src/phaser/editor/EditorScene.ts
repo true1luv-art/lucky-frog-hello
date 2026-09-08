@@ -137,7 +137,7 @@ export class EditorScene extends Phaser.Scene {
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.teardown());
   }
 
-  update() {
+  override update() {
     this.emitCamera();
   }
 
@@ -447,7 +447,10 @@ export class EditorScene extends Phaser.Scene {
   }
 
   private removeAnimal(kind: AnimalKind): void {
-    const index = this.animals.findLastIndex((a) => a.kind === kind);
+    let index = -1;
+    for (let i = this.animals.length - 1; i >= 0; i -= 1) {
+      if (this.animals[i]?.kind === kind) { index = i; break; }
+    }
     if (index < 0) return;
     const [animal] = this.animals.splice(index, 1);
     if (animal) {
