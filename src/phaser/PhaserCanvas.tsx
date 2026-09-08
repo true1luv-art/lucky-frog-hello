@@ -507,7 +507,7 @@ function FishingEventBridge() {
           const next = Number((fishItems as Record<string, unknown>)[fish] ?? 0);
           setFishResult({ fish, amount: next - prev });
         }
-      } catch { /* cooldown / stamina guard */ }
+      } catch { /* cooldown guard */ }
     };
     window.addEventListener("phaser-fishing-open", onCaught);
     return () => window.removeEventListener("phaser-fishing-open", onCaught);
@@ -539,7 +539,7 @@ function FishingEventBridge() {
  * FarmScene can call them, and renders all React overlays:
  *
  *   - CropEventBridge, ResourceEventBridge, FishingEventBridge
- *   - Hud — PlayerHud, Inventory, FishingCooldown
+ *   - Hud — Hud dock, Inventory, FishingCooldown
  *   - PlotPopover, ResourceDropFloater, NodeTooltip
    *   - PhaserModals — building modals
  *   - MobileJoystick, MobileActionButton

@@ -93,14 +93,6 @@ export class FishingSystem {
         }));
         return;
       }
-      // stamina is a flat number in GameState, not an object
-      const staminaVal = typeof state.stamina === "number"
-        ? state.stamina
-        : Number((state.stamina as Record<string, number>)?.current ?? 0);
-      if (staminaVal < 3) {
-        window.dispatchEvent(new CustomEvent("phaser-fishing-cooldown", { detail: { reason: "stamina" } }));
-        return;
-      }
     }
     const sprite = this.options.player()?.sprite;
     if (!sprite) return;

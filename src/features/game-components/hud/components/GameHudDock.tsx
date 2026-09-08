@@ -9,7 +9,6 @@ import { MarketplaceModal } from "@/features/game-components/marketplace/Marketp
 import { useGameStore } from "@/features/game-stores/useGameStore";
 import { useTutorialStore } from "@/features/game-stores/useTutorialStore";
 import { getMaxHp } from "@/features/game/hp";
-import { STAMINA_CONSTANTS } from "@/features/game/stamina";
 import type { ToolInstance } from "@/features/types/gameplay/tools";
 import { ITEM_DETAILS } from "@/features/types/item-details";
 
@@ -17,7 +16,6 @@ const basket = "/assets/icons/basket.png";
 const button = "/assets/ui/button/round_button.png";
 const darkBorder = "/assets/ui/panel/dark_border.png";
 const heart = "/assets/icons/heart.png";
-const lightning = "/assets/icons/lightning.png";
 const menu = "/assets/icons/hamburger_menu.png";
 const token = "/assets/icons/luckyfrog_token.png";
 
@@ -47,10 +45,9 @@ export function GameHudDock({ wallet }: { wallet?: string }) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [shortcuts, setShortcuts] = useState(() => getShortcuts());
 
-  const maxStamina = STAMINA_CONSTANTS.DEFAULT_MAX_STAMINA;
-  const stamina = Math.max(0, Math.min(maxStamina, state.stamina ?? maxStamina));
-  const staminaPct = (stamina / maxStamina) * 100;
   const maxHealth = getMaxHp(state.farmLevel);
+  const health = Math.max(0, Math.min(maxHealth, state.hp ?? maxHealth));
+  const healthPct = (health / maxHealth) * 100;
   const tools = (state.tools ?? []) as ToolInstance[];
   const actionSlots = shortcuts.slice(0, 3);
   const coins = new Decimal(state.coins ?? 0).toDecimalPlaces(3, Decimal.ROUND_DOWN).toString();
@@ -90,33 +87,20 @@ export function GameHudDock({ wallet }: { wallet?: string }) {
         </div>
       </div>
 
-      {/* ── Bottom-center dock: stamina, hp, shortcuts, inventory ── */}
+      {/* ── Bottom-center dock: hp, shortcuts, inventory ── */}
       <div className="pointer-events-none fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom,0px)+0.5rem)] z-40 flex justify-center px-1 select-none">
         <div className="grid grid-cols-[minmax(0,9rem)_3rem] items-end gap-1 sm:grid-cols-[minmax(0,11rem)_4rem] sm:gap-2">
           <div className="flex min-w-0 flex-col items-center gap-1">
-            <div className="flex w-full items-center gap-1 px-1">
-              <img src={lightning} alt="" className="h-3.5 w-3.5 shrink-0 pixelated sm:h-4 sm:w-4" />
-              <div className="h-3 min-w-0 flex-1 overflow-hidden border-2 border-brown-700 bg-foreground/60 p-0.5 sm:h-4">
-                <div
-                  className="h-full bg-neon transition-[width] duration-500"
-                  style={{ width: `${staminaPct}%` }}
-                />
-              </div>
-              <span className="shrink-0 font-pixel text-[6px] text-primary-foreground text-outline sm:text-[7px]">
-                {stamina}/{maxStamina}
-              </span>
-            </div>
-
             <div className="flex w-full items-center gap-1 px-1">
               <img src={heart} alt="" className="h-3.5 w-3.5 shrink-0 pixelated sm:h-4 sm:w-4" />
               <div className="h-3 min-w-0 flex-1 overflow-hidden border-2 border-brown-700 bg-foreground/60 p-0.5 sm:h-4">
                 <div
                   className="h-full bg-rose transition-[width] duration-500"
-                  style={{ width: "100%" }}
+                  style={{ width: `${healthPct}%` }}
                 />
               </div>
               <span className="shrink-0 font-pixel text-[6px] text-primary-foreground text-outline sm:text-[7px]">
-                {maxHealth}/{maxHealth}
+                {health}/{maxHealth}
               </span>
             </div>
 

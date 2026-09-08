@@ -10,7 +10,6 @@ import { EquipmentState } from "@/features/types/gameplay/equipment";
 import type { ToolInstance } from "@/features/types/gameplay/tools";
 import type { PlayerStats } from "@/features/types/player-stats";
 import type { EmbeddedQuest } from "@/features/types/quests";
-import { STAMINA_CONSTANTS } from "@/features/game/stamina";
 
 export type Reward = {
   items: { name: InventoryItemName; amount: number }[];
@@ -113,15 +112,9 @@ export type GameState = {
    */
   coins: Decimal;
   /**
-   * Current stamina (0–100). Gating resource for chop/mine actions.
-   * Restored by eating food.
+   * Current HP. Restored by eating cooked food.
    */
-  stamina: number;
-  /**
-   * Unix timestamp (ms) of the last stamina regen tick.
-   * Used by calculateStaminaRegen to apply offline regen on load.
-   */
-  staminaRegenAt: number;
+  hp: number;
   fishing: FishingState;
   milestones: Milestones;
   /**

@@ -33,7 +33,7 @@ import type { GameAction, GameEvent } from "@/features/events";
 import { processGameEvent } from "@/features/events";
 import { INITIAL_SKILLS } from "@/features/types/gameplay/skills";
 import { createInitialEquipment } from "@/features/types/gameplay/equipment";
-import { STAMINA_CONSTANTS } from "@/features/game/stamina";
+import { INITIAL_HP } from "@/features/game/hp";
 
 // ---------------------------------------------------------------------------
 // Initial state — used as the default store state and the reset target
@@ -89,8 +89,7 @@ const INITIAL_FARM: GameState = {
   skills:   { ...INITIAL_SKILLS },
   equipment: createInitialEquipment(),
   coins:   new Decimal(0),
-  stamina: STAMINA_CONSTANTS.DEFAULT_MAX_STAMINA,
-  staminaRegenAt: 0,
+  hp: INITIAL_HP,
   fishing: {
     lastCastAt:     0,
     lastCaughtFish: null,
@@ -199,10 +198,9 @@ function mergeServerState(local: GameState, server: GameState): GameState {
 
     equipment:          server.equipment,
     milestones:         server.milestones,
-    // Coins and stamina: server is authoritative; fall back to local optimistic values.
+    // Coins and HP: server is authoritative; fall back to local optimistic values.
     coins:          server.coins          ?? local.coins,
-    stamina:        server.stamina        ?? local.stamina,
-    staminaRegenAt: server.staminaRegenAt ?? local.staminaRegenAt,
+    hp:             server.hp             ?? local.hp,
     // Local cosmetics win
     username:    local.username    ?? server.username,
     avatarUrl:   local.avatarUrl   ?? server.avatarUrl,

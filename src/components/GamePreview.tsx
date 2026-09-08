@@ -7,7 +7,7 @@ const STEPS = [
   [
     "01",
     "Start Your Farm",
-    "Begin with 6 crop plots, 5 sunflower seeds, basic tools, 100 stamina, and 0 HFARM.",
+    "Begin with 6 crop plots, 5 sunflower seeds, basic tools, and 0 HFARM.",
     "/assets/crops/sunflower/seed.png",
   ],
   [
@@ -19,7 +19,7 @@ const STEPS = [
   [
     "03",
     "Cook & Recover",
-    "Turn harvests into meals at the kitchen. Food restores stamina so you can keep progressing.",
+    "Turn harvests into meals at the kitchen. Food restores HP so you can keep progressing.",
     "/assets/buildings/kitchen_building.png",
   ],
   [
@@ -46,25 +46,25 @@ const ACTIVITIES = [
   [
     "Farming",
     "Plant eleven crop types with growth times from one minute to a full day.",
-    "Planting costs 1 stamina and harvesting costs 2. Harvests grant Farming XP and produce.",
+    "Harvests grant Farming XP and produce.",
     "/assets/crops/carrot/crop.png",
   ],
   [
     "Woodcutting",
     "Chop regenerating trees for wood used throughout the farm economy.",
-    "Each chop costs 2 stamina. Skill levels improve efficiency and bonus yield.",
+    "Skill levels improve chopping efficiency and bonus yield.",
     "/assets/resources/wood.png",
   ],
   [
     "Mining",
     "Break rocks for stone, iron, and gold across increasingly valuable nodes.",
-    "Mining costs 3 stamina per action and grants permanent Mining XP.",
+    "Mining grants permanent Mining XP.",
     "/assets/resources/stone.png",
   ],
   [
     "Fishing",
     "Cast into the pond for catches with different rarity, value, and XP.",
-    "A cast costs 5 stamina. Better catches support quests, selling, and progression.",
+    "Better catches support quests, selling, and progression.",
     "/assets/fish/fish.png",
   ],
   [
@@ -75,7 +75,7 @@ const ACTIVITIES = [
   ],
   [
     "Cooking",
-    "Combine crops into recipes that restore more stamina than raw ingredients.",
+    "Combine crops into recipes that restore more HP than raw ingredients.",
     "Better meals keep long gathering sessions productive.",
     "/assets/foods/pumpkin_soup.png",
   ],
@@ -149,7 +149,7 @@ export function GamePreview() {
           HOW ROBINHOOD FARM WORKS
         </h2>
         <p className="mt-4 font-body text-xl leading-relaxed text-brown-700">
-          A stamina-driven farming RPG where every harvest, catch, recipe, and trade builds
+          A farming RPG where every harvest, catch, recipe, and trade builds
           permanent progression.
         </p>
       </div>

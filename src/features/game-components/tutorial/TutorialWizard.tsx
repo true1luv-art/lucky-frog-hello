@@ -67,7 +67,7 @@ const SLIDES: Slide[] = [
     steps: [
       "Equip a Fishing Rod from your hotbar and head to the water.",
       "Click the water to cast your line and wait for a bite.",
-      "Fish can be cooked into food that restores extra Stamina.",
+      "Fish can be cooked into food that restores extra HP.",
       "Rare fish sell for high Coin value at the Market.",
     ],
   },
@@ -88,7 +88,7 @@ const SLIDES: Slide[] = [
     imageAlt: "Kitchen building",
     steps: [
       "Bring harvested crops to the Kitchen to cook meals.",
-      "Cooked food restores Stamina, letting you perform more actions.",
+      "Cooked food restores HP, keeping you in good shape.",
       "Recipes unlock as your Cooking skill increases.",
       "Rare dishes grant temporary stat buffs.",
     ],
@@ -116,14 +116,14 @@ const SLIDES: Slide[] = [
     ],
   },
   {
-    title:    "Stamina",
-    image:    "/assets/icons/lightning.png",
-    imageAlt: "Lightning / stamina icon",
+    title:    "Health",
+    image:    "/assets/icons/heart.png",
+    imageAlt: "Heart / health icon",
     steps: [
-      "Every action (chopping, mining, farming) costs Stamina.",
-      "Stamina regenerates automatically over time.",
-      "Eat cooked food to restore Stamina instantly.",
-      "Running out of Stamina? Rest up or cook a meal!",
+      "Your HP bar shows how healthy your farmer is.",
+      "Eat cooked food to restore HP instantly.",
+      "Better recipes restore more HP.",
+      "Keep a meal handy before long expeditions!",
     ],
   },
   {
