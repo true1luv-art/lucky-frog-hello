@@ -6,11 +6,6 @@ import {
   TREE_POSITIONS,
   STONE_POSITIONS,
   PLOT_POSITIONS,
-  BARN_ZONE,
-  CHICKEN_SPAWN_POSITIONS,
-  COW_SPAWN_POSITIONS,
-  SHEEP_SPAWN_POSITIONS,
-  FISHING_POSITIONS,
 } from "@/phaser/positions";
 
 export const Route = createFileRoute("/map-editor")({
@@ -18,9 +13,9 @@ export const Route = createFileRoute("/map-editor")({
   head: () => ({
     meta: [
       { title: "Map Editor | Lucky Frog Farm" },
-      { name: "description", content: "Drag farm objects on the tile grid and copy the updated position JSON." },
+      { name: "description", content: "Drag farm objects on the full-screen tile map and copy the updated position JSON." },
       { property: "og:title", content: "Map Editor | Lucky Frog Farm" },
-      { property: "og:description", content: "Drag farm objects on the tile grid and copy the updated position JSON." },
+      { property: "og:description", content: "Drag farm objects on the full-screen tile map and copy the updated position JSON." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -28,11 +23,12 @@ export const Route = createFileRoute("/map-editor")({
 });
 
 const TILE = 16;
-const PX_BASE = TILE;
+
+type Group = "trees" | "stones" | "plots" | "buildings" | "npcs";
 
 type Marker = {
   key: string;
-  group: string;
+  group: Group;
   id: string;
   x: number;
   y: number;
@@ -52,6 +48,14 @@ const BUILDING_SPRITES: Record<string, string> = {
   wishing_well: "/assets/buildings/wishing_well.png",
   summoning_shrine: "/assets/buildings/hatchery.png",
   cabin: "/assets/buildings/cabin.png",
+};
+
+const GROUP_LABEL: Record<Group, string> = {
+  trees: "Trees",
+  stones: "Stones",
+  plots: "Plots",
+  buildings: "Buildings",
+  npcs: "NPCs",
 };
 
 function buildMarkers(): Marker[] {
@@ -82,29 +86,6 @@ function buildMarkers(): Marker[] {
   NPC_POSITIONS.forEach((n) =>
     out.push({ key: `npc:${n.id}`, group: "npcs", id: n.id, x: n.x, y: n.y, w: n.width, h: n.height, color: "#dc2626", label: n.name ?? "NPC", sprite: "/assets/npcs/idle.gif" })
   );
-  CHICKEN_SPAWN_POSITIONS.forEach((a) =>
-    out.push({ key: `chicken:${a.index}`, group: "chickens", id: String(a.index), x: a.x, y: a.y, w: 1, h: 1, color: "#f59e0b", label: "c", sprite: "/assets/animals/chicken.gif" })
-  );
-  COW_SPAWN_POSITIONS.forEach((a) =>
-    out.push({ key: `cow:${a.index}`, group: "cows", id: String(a.index), x: a.x, y: a.y, w: 2, h: 2, color: "#f472b6", label: "w", sprite: "/assets/animals/cow.gif" })
-  );
-  SHEEP_SPAWN_POSITIONS.forEach((a) =>
-    out.push({ key: `sheep:${a.index}`, group: "sheep", id: String(a.index), x: a.x, y: a.y, w: 2, h: 2, color: "#e5e7eb", label: "s", sprite: "/assets/animals/sheep.gif" })
-  );
-  FISHING_POSITIONS.forEach((f) =>
-    out.push({ key: `fishing:${f.id}`, group: "fishingAnchors", id: f.id, x: f.anchorTile.x, y: f.anchorTile.y, w: 1, h: 1, color: "#0ea5e9", label: "F" })
-  );
-  out.push({
-    key: "barnZone",
-    group: "barnZone",
-    id: "barn_zone",
-    x: BARN_ZONE.x,
-    y: BARN_ZONE.y,
-    w: BARN_ZONE.width,
-    h: BARN_ZONE.height,
-    color: "#0f766e",
-    label: "barn zone",
-  });
   return out;
 }
 
@@ -115,15 +96,26 @@ function MapEditor() {
   const [selected, setSelected] = useState<string | null>(null);
   const [hidden, setHidden] = useState<Record<string, boolean>>({});
   const [mapSize, setMapSize] = useState({ w: 40, h: 40 });
-  const [zoom, setZoom] = useState(2);
-  const [drawerOpen, setDrawerOpen] = useState(true);
   const [showGrid, setShowGrid] = useState(true);
+  const [showJson, setShowJson] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [viewport, setViewport] = useState({ w: 1280, h: 720 });
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const dragOff = useRef({ dx: 0, dy: 0 });
 
-  const PX = PX_BASE * zoom;
+  // Full-screen fit, exactly like the game canvas: the whole map is always visible.
+  const PX = useMemo(() => {
+    const fit = Math.min(viewport.w / (mapSize.w * TILE), viewport.h / (mapSize.h * TILE));
+    return TILE * fit;
+  }, [viewport, mapSize]);
+
+  useEffect(() => {
+    const onResize = () => setViewport({ w: window.innerWidth, h: window.innerHeight });
+    onResize();
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -163,6 +155,14 @@ function MapEditor() {
     };
   }, []);
 
+  const clampTo = useCallback(
+    (m: Marker, x: number, y: number) => ({
+      x: Math.min(Math.max(0, x), Math.max(0, mapSize.w - m.w)),
+      y: Math.min(Math.max(0, y), Math.max(0, mapSize.h - m.h)),
+    }),
+    [mapSize]
+  );
+
   const onPointerMove = useCallback(
     (e: React.PointerEvent) => {
       if (!dragKey) return;
@@ -173,14 +173,13 @@ function MapEditor() {
       setMarkers((prev) =>
         prev.map((m) => {
           if (m.key !== dragKey) return m;
-          const tx = Math.min(Math.max(0, gx), Math.max(0, mapSize.w - m.w));
-          const ty = Math.min(Math.max(0, gy), Math.max(0, mapSize.h - m.h));
-          if (m.x !== tx || m.y !== ty) setMoved(true);
-          return { ...m, x: tx, y: ty };
+          const next = clampTo(m, gx, gy);
+          if (m.x !== next.x || m.y !== next.y) setMoved(true);
+          return { ...m, ...next };
         })
       );
     },
-    [dragKey, PX, mapSize]
+    [dragKey, PX, clampTo]
   );
 
   // Arrow keys nudge the selected asset by one tile.
@@ -189,37 +188,23 @@ function MapEditor() {
     const onKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
       if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA")) return;
-      const d: Record<string, [number, number]> = {
+      const moves: Record<string, [number, number]> = {
         ArrowLeft: [-1, 0],
         ArrowRight: [1, 0],
         ArrowUp: [0, -1],
         ArrowDown: [0, 1],
       };
-      const move = d[e.key];
+      const move = moves[e.key];
       if (!move) return;
       e.preventDefault();
-      setMarkers((prev) =>
-        prev.map((m) =>
-          m.key === selected
-            ? {
-                ...m,
-                x: Math.min(Math.max(0, m.x + move[0]), Math.max(0, mapSize.w - m.w)),
-                y: Math.min(Math.max(0, m.y + move[1]), Math.max(0, mapSize.h - m.h)),
-              }
-            : m
-        )
-      );
+      setMarkers((prev) => prev.map((m) => (m.key === selected ? { ...m, ...clampTo(m, m.x + move[0], m.y + move[1]) } : m)));
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [selected, mapSize]);
-
-
-  const groups = useMemo(() => Array.from(new Set(markers.map((m) => m.group))), [markers]);
+  }, [selected, clampTo]);
 
   const json = useMemo(() => {
-    const get = (g: string) => markers.filter((m) => m.group === g);
-    const barn = markers.find((m) => m.group === "barnZone")!;
+    const get = (g: Group) => markers.filter((m) => m.group === g);
     return JSON.stringify(
       {
         trees: get("trees").map((m) => ({ id: m.id, x: m.x, y: m.y })),
@@ -227,272 +212,172 @@ function MapEditor() {
         plots: get("plots").map((m, i) => ({ id: m.id, fieldIndex: PLOT_POSITIONS[i]?.fieldIndex ?? i, x: m.x, y: m.y })),
         buildings: get("buildings").map((m) => ({ type: m.id, x: m.x, y: m.y, width: m.w, height: m.h })),
         npcs: get("npcs").map((m) => ({ id: m.id, x: m.x, y: m.y, width: m.w, height: m.h })),
-        chickens: get("chickens").map((m) => ({ index: Number(m.id), x: m.x, y: m.y })),
-        cows: get("cows").map((m) => ({ index: Number(m.id), x: m.x, y: m.y })),
-        sheep: get("sheep").map((m) => ({ index: Number(m.id), x: m.x, y: m.y })),
-        fishingAnchors: get("fishingAnchors").map((m) => ({ id: m.id, anchorTile: { x: m.x, y: m.y } })),
-        barnZone: { x: barn.x, y: barn.y, width: barn.w, height: barn.h },
       },
       null,
       2
     );
   }, [markers]);
 
-  const sel = markers.find((m) => m.key === selected) ?? null;
-
   const patch = useCallback((key: string, field: "x" | "y" | "w" | "h", value: number) => {
     setMarkers((prev) => prev.map((m) => (m.key === key ? { ...m, [field]: Math.max(field === "w" || field === "h" ? 1 : 0, value) } : m)));
   }, []);
 
-  const focusMarker = useCallback((key: string) => {
-    setSelected(key);
-    window.requestAnimationFrame(() => {
-      document.querySelector(`[data-marker="${key}"]`)?.scrollIntoView({ block: "center", inline: "center", behavior: "smooth" });
-    });
-  }, []);
+  const groups = useMemo(() => Object.keys(GROUP_LABEL) as Group[], []);
+  const sel = markers.find((m) => m.key === selected) ?? null;
 
   return (
-    <main className="flex h-screen w-full overflow-hidden bg-background text-foreground">
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex flex-wrap items-center gap-2 border-b border-border p-2">
-          <h1 className="mr-2 text-sm font-bold">Map editor</h1>
-          <div className="flex items-center gap-1 text-xs">
-            <button type="button" onClick={() => setZoom((z) => Math.max(1, z - 1))} className="rounded border border-border px-2">
-              −
-            </button>
-            <span className="w-10 text-center">{zoom}×</span>
-            <button type="button" onClick={() => setZoom((z) => Math.min(4, z + 1))} className="rounded border border-border px-2">
-              +
-            </button>
-          </div>
-          <button
-            type="button"
-            onClick={() => setShowGrid((g) => !g)}
-            className={`rounded border border-border px-2 py-1 text-xs ${showGrid ? "" : "opacity-40"}`}
-          >
-            grid
-          </button>
-          <div className="flex flex-wrap gap-1">
-            {groups.map((g) => (
-              <button
-                key={g}
-                type="button"
-                onClick={() => setHidden((h) => ({ ...h, [g]: !h[g] }))}
-                className={`rounded border border-border px-2 py-1 text-xs ${hidden[g] ? "opacity-40" : ""}`}
-              >
-                {g}
-              </button>
-            ))}
-          </div>
-          <div className="ml-auto flex gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                void navigator.clipboard.writeText(json);
-                setCopied(true);
-                window.setTimeout(() => setCopied(false), 1500);
+    <main className="relative h-screen w-screen overflow-hidden bg-black text-foreground">
+      {/* Full-screen map, fitted like the game view */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div
+          ref={wrapRef}
+          className="relative"
+          style={{ width: mapSize.w * PX, height: mapSize.h * PX }}
+          onPointerMove={onPointerMove}
+          onPointerUp={() => setDragKey(null)}
+          onPointerLeave={() => setDragKey(null)}
+          onPointerDown={(e) => {
+            if (e.target === e.currentTarget || e.target === canvasRef.current) setSelected(null);
+          }}
+        >
+          <canvas
+            ref={canvasRef}
+            className="absolute left-0 top-0"
+            style={{ imageRendering: "pixelated", width: mapSize.w * PX, height: mapSize.h * PX }}
+          />
+          {showGrid ? (
+            <div
+              className="pointer-events-none absolute inset-0"
+              style={{
+                backgroundImage:
+                  "linear-gradient(to right, rgba(0,0,0,.18) 1px, transparent 1px), linear-gradient(to bottom, rgba(0,0,0,.18) 1px, transparent 1px)",
+                backgroundSize: `${PX}px ${PX}px`,
               }}
-              className="rounded border border-border px-3 py-1 text-xs"
-            >
-              {copied ? "Copied!" : "Copy JSON"}
-            </button>
-            <button type="button" onClick={() => setMarkers(buildMarkers())} className="rounded border border-border px-3 py-1 text-xs">
-              Reset
-            </button>
-            <button type="button" onClick={() => setDrawerOpen((d) => !d)} className="rounded border border-border px-3 py-1 text-xs">
-              {drawerOpen ? "Hide list" : "Show list"}
-            </button>
-          </div>
-        </header>
-
-        <div className="flex-1 overflow-auto">
-          <div
-            ref={wrapRef}
-            className="relative"
-            style={{ width: mapSize.w * PX, height: mapSize.h * PX }}
-            onPointerMove={onPointerMove}
-            onPointerUp={() => setDragKey(null)}
-            onPointerLeave={() => setDragKey(null)}
-            onPointerDown={(e) => {
-              if (e.target === e.currentTarget || e.target === canvasRef.current) setSelected(null);
-            }}
-          >
-            <canvas
-              ref={canvasRef}
-              className="absolute left-0 top-0 origin-top-left"
-              style={{ imageRendering: "pixelated", width: mapSize.w * PX, height: mapSize.h * PX }}
             />
-            {showGrid ? (
-              <div
-                className="pointer-events-none absolute inset-0"
-                style={{
-                  backgroundImage:
-                    "linear-gradient(to right, rgba(0,0,0,.15) 1px, transparent 1px), linear-gradient(to bottom, rgba(0,0,0,.15) 1px, transparent 1px)",
-                  backgroundSize: `${PX}px ${PX}px`,
-                }}
-              />
-            ) : null}
+          ) : null}
 
-            {markers
-              .filter((m) => !hidden[m.group])
-              .map((m) => {
-                const active = selected === m.key;
-                return (
-                  <div
-                    key={m.key}
-                    data-marker={m.key}
-                    className="absolute"
-                    style={{ left: m.x * PX, top: m.y * PX, width: m.w * PX, height: m.h * PX }}
+          {markers
+            .filter((m) => !hidden[m.group])
+            .map((m) => {
+              const active = selected === m.key;
+              return (
+                <div key={m.key} className="absolute" style={{ left: m.x * PX, top: m.y * PX, width: m.w * PX, height: m.h * PX }}>
+                  <button
+                    type="button"
+                    onPointerDown={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      const rect = wrapRef.current?.getBoundingClientRect();
+                      dragOff.current = rect
+                        ? { dx: Math.floor((e.clientX - rect.left) / PX) - m.x, dy: Math.floor((e.clientY - rect.top) / PX) - m.y }
+                        : { dx: 0, dy: 0 };
+                      setDragKey(m.key);
+                      setMoved(false);
+                      setSelected(m.key);
+                    }}
+                    onPointerUp={() => {
+                      if (!moved) setSelected(m.key);
+                    }}
+                    title={`${m.group} · ${m.id} (${m.x}, ${m.y})`}
+                    className="absolute inset-0 flex items-center justify-center"
+                    style={{ cursor: "grab", touchAction: "none" }}
                   >
-                    <button
-                      type="button"
-                      onPointerDown={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        const rect = wrapRef.current?.getBoundingClientRect();
-                        if (rect) {
-                          dragOff.current = {
-                            dx: Math.floor((e.clientX - rect.left) / PX) - m.x,
-                            dy: Math.floor((e.clientY - rect.top) / PX) - m.y,
-                          };
-                        } else {
-                          dragOff.current = { dx: 0, dy: 0 };
-                        }
-                        setDragKey(m.key);
-                        setMoved(false);
-                        setSelected(m.key);
-                      }}
-                      onPointerUp={() => {
-                        if (!moved) setSelected(m.key);
-                      }}
-                      title={`${m.group} · ${m.id} (${m.x}, ${m.y})`}
-                      className="group absolute inset-0 flex items-center justify-center"
-                      style={{ cursor: "grab", touchAction: "none" }}
-                    >
-                      {m.sprite ? (
-                        <img
-                          src={m.sprite}
-                          alt={m.id}
-                          draggable={false}
-                          className="h-full w-full object-contain"
-                          style={{ imageRendering: "pixelated" }}
-                        />
-                      ) : null}
-                      <span
-                        className="absolute inset-0 transition-colors"
-                        style={{
-                          background: active ? `${m.color}55` : `${m.color}22`,
-                          outline: active ? "2px solid #fff" : `1px dashed ${m.color}`,
-                          boxShadow: active ? `0 0 0 2px ${m.color}` : undefined,
-                        }}
-                      />
-                      {!m.sprite ? (
-                        <span className="relative text-[10px] font-bold text-white drop-shadow">{m.label}</span>
-                      ) : null}
-                    </button>
-
-                    {active ? (
-                      <div
-                        className="absolute z-20 w-56 rounded border border-border bg-popover p-2 text-xs text-popover-foreground shadow-lg"
-                        style={{ left: m.w * PX + 8, top: 0 }}
-                        onPointerDown={(e) => e.stopPropagation()}
-                      >
-                        <div className="mb-2 font-semibold">
-                          {m.group} · {m.id}
-                        </div>
-                        <div className="grid grid-cols-2 gap-2">
-                          {(["x", "y", "w", "h"] as const).map((f) => (
-                            <div key={f} className="flex items-center gap-1">
-                              <span className="w-3 uppercase">{f}</span>
-                              <button type="button" className="rounded border border-border px-1" onClick={() => patch(m.key, f, m[f] - 1)}>
-                                −
-                              </button>
-                              <input
-                                type="number"
-                                value={m[f]}
-                                onChange={(e) => patch(m.key, f, Number(e.target.value))}
-                                className="w-12 rounded border border-border bg-transparent px-1"
-                              />
-                              <button type="button" className="rounded border border-border px-1" onClick={() => patch(m.key, f, m[f] + 1)}>
-                                +
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                        <button type="button" onClick={() => setSelected(null)} className="mt-2 w-full rounded border border-border px-2 py-1">
-                          Close
-                        </button>
-                      </div>
+                    {m.sprite ? (
+                      <img src={m.sprite} alt={m.id} draggable={false} className="h-full w-full object-contain" style={{ imageRendering: "pixelated" }} />
                     ) : null}
-                  </div>
-                );
-              })}
-          </div>
+                    <span
+                      className="absolute inset-0 transition-colors"
+                      style={{
+                        background: active ? `${m.color}55` : `${m.color}22`,
+                        outline: active ? "2px solid #fff" : `1px dashed ${m.color}`,
+                      }}
+                    />
+                    {!m.sprite ? <span className="relative text-[10px] font-bold text-white drop-shadow">{m.label}</span> : null}
+                  </button>
+                </div>
+              );
+            })}
         </div>
       </div>
 
-      <aside
-        className={`h-full shrink-0 overflow-hidden border-l border-border bg-card transition-all duration-300 ${
-          drawerOpen ? "w-96" : "w-0"
-        }`}
-      >
-        <div className="flex h-full w-96 flex-col gap-2 p-3">
-          <h2 className="text-sm font-bold">Assets</h2>
-          <p className="text-xs text-muted-foreground">Click a row to select it on the map; drag markers or use the popover to adjust.</p>
-          <div className="flex-1 overflow-auto rounded border border-border">
-            {groups.map((g) => (
-              <div key={g}>
-                <div className="sticky top-0 bg-muted px-2 py-1 text-xs font-semibold uppercase">{g}</div>
-                {markers
-                  .filter((m) => m.group === g)
-                  .map((m) => {
-                    const offMap = m.x + m.w > mapSize.w || m.y + m.h > mapSize.h;
-                    return (
-                      <div
-                        key={m.key}
-                        className={`flex w-full items-center gap-2 border-b border-border px-2 py-1 text-left text-[11px] ${
-                          selected === m.key ? "bg-accent" : ""
-                        }`}
-                      >
-                        <button type="button" onClick={() => focusMarker(m.key)} className="flex min-w-0 flex-1 items-center gap-2 text-left">
-                          <span className="inline-block h-3 w-3 shrink-0 rounded-sm" style={{ background: m.color }} />
-                          <span className="flex-1 truncate font-mono">{m.id}</span>
-                          <span className="font-mono text-muted-foreground">
-                            x{m.x} y{m.y} w{m.w} h{m.h}
-                          </span>
-                        </button>
-                        {offMap ? (
-                          <button
-                            type="button"
-                            title="This asset sits outside the map — move it inside"
-                            onClick={() => {
-                              setMarkers((prev) =>
-                                prev.map((n) =>
-                                  n.key === m.key
-                                    ? {
-                                        ...n,
-                                        x: Math.min(n.x, Math.max(0, mapSize.w - n.w)),
-                                        y: Math.min(n.y, Math.max(0, mapSize.h - n.h)),
-                                      }
-                                    : n
-                                )
-                              );
-                              focusMarker(m.key);
-                            }}
-                            className="shrink-0 rounded border border-border px-1 text-[10px] text-destructive"
-                          >
-                            off-map
-                          </button>
-                        ) : null}
-                      </div>
-                    );
-                  })}
+      {/* Floating asset filter buttons */}
+      <div className="pointer-events-auto absolute left-3 top-3 flex flex-wrap items-center gap-2 rounded-lg bg-black/70 p-2 text-xs text-white backdrop-blur">
+        <span className="font-bold">Map editor</span>
+        {groups.map((g) => (
+          <button
+            key={g}
+            type="button"
+            onClick={() => setHidden((h) => ({ ...h, [g]: !h[g] }))}
+            className={`rounded border border-white/30 px-2 py-1 ${hidden[g] ? "opacity-40" : "bg-white/15"}`}
+          >
+            {GROUP_LABEL[g]}
+          </button>
+        ))}
+        <button type="button" onClick={() => setShowGrid((s) => !s)} className={`rounded border border-white/30 px-2 py-1 ${showGrid ? "bg-white/15" : "opacity-40"}`}>
+          Grid
+        </button>
+      </div>
+
+      {/* Floating actions */}
+      <div className="absolute right-3 top-3 flex flex-wrap items-center gap-2 rounded-lg bg-black/70 p-2 text-xs text-white backdrop-blur">
+        <button
+          type="button"
+          onClick={() => {
+            void navigator.clipboard.writeText(json);
+            setCopied(true);
+            window.setTimeout(() => setCopied(false), 1500);
+          }}
+          className="rounded border border-white/30 bg-white/15 px-2 py-1"
+        >
+          {copied ? "Copied!" : "Copy JSON"}
+        </button>
+        <button type="button" onClick={() => setShowJson((s) => !s)} className={`rounded border border-white/30 px-2 py-1 ${showJson ? "bg-white/15" : ""}`}>
+          JSON
+        </button>
+        <button type="button" onClick={() => setMarkers(buildMarkers())} className="rounded border border-white/30 px-2 py-1">
+          Reset
+        </button>
+      </div>
+
+      {/* Floating position controls for the selected asset */}
+      {sel ? (
+        <div className="absolute bottom-3 left-3 w-64 rounded-lg bg-black/80 p-3 text-xs text-white backdrop-blur">
+          <div className="mb-2 flex items-center gap-2">
+            <span className="inline-block h-3 w-3 rounded-sm" style={{ background: sel.color }} />
+            <span className="flex-1 truncate font-mono font-semibold">{sel.id}</span>
+            <button type="button" onClick={() => setSelected(null)} className="rounded border border-white/30 px-2">
+              ✕
+            </button>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {(["x", "y", "w", "h"] as const).map((f) => (
+              <div key={f} className="flex items-center gap-1">
+                <span className="w-3 uppercase">{f}</span>
+                <button type="button" className="rounded border border-white/30 px-1" onClick={() => patch(sel.key, f, sel[f] - 1)}>
+                  −
+                </button>
+                <input
+                  type="number"
+                  value={sel[f]}
+                  onChange={(e) => patch(sel.key, f, Number(e.target.value))}
+                  className="w-12 rounded border border-white/30 bg-transparent px-1"
+                />
+                <button type="button" className="rounded border border-white/30 px-1" onClick={() => patch(sel.key, f, sel[f] + 1)}>
+                  +
+                </button>
               </div>
             ))}
           </div>
-          <textarea readOnly value={json} className="h-40 shrink-0 rounded border border-border bg-transparent p-2 font-mono text-[10px]" />
+          <p className="mt-2 text-[10px] text-white/60">Drag on the map or nudge with the arrow keys.</p>
         </div>
-      </aside>
+      ) : null}
+
+      {/* Floating JSON output */}
+      {showJson ? (
+        <div className="absolute bottom-3 right-3 w-80 rounded-lg bg-black/80 p-2 text-white backdrop-blur">
+          <textarea readOnly value={json} className="h-64 w-full resize-none rounded bg-transparent p-1 font-mono text-[10px]" />
+        </div>
+      ) : null}
     </main>
   );
 }
