@@ -48,21 +48,25 @@ export interface EditorEvents {
 type Handler<K extends keyof EditorEvents> = (payload: EditorEvents[K]) => void;
 
 class EditorBus {
-  private handlers: { [K in keyof EditorEvents]?: Set<Handler<K>> } = {};
+  private handlers = new Map<string, Set<(payload: never) => void>>();
 
   on<K extends keyof EditorEvents>(event: K, handler: Handler<K>): () => void {
-    const set = (this.handlers[event] ??= new Set()) as Set<Handler<K>>;
-    set.add(handler);
-    return () => set.delete(handler);
+    let set = this.handlers.get(event as string);
+    if (!set) {
+      set = new Set();
+      this.handlers.set(event as string, set);
+    }
+    set.add(handler as (payload: never) => void);
+    return () => set?.delete(handler as (payload: never) => void);
   }
 
   emit<K extends keyof EditorEvents>(event: K, payload: EditorEvents[K]): void {
-    const set = this.handlers[event] as Set<Handler<K>> | undefined;
-    set?.forEach((handler) => handler(payload));
+    const set = this.handlers.get(event as string);
+    set?.forEach((handler) => (handler as (value: EditorEvents[K]) => void)(payload));
   }
 
   clear(): void {
-    this.handlers = {};
+    this.handlers.clear();
   }
 }
 
