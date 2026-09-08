@@ -141,7 +141,7 @@ function MapEditor() {
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
       const dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 100 : 1);
-      setZoom((z) => {
+      setZoom((z: number) => {
         const next = Math.min(8, Math.max(1, z * Math.exp(-dy * 0.0015)));
         const k = next / z;
         const rect = el.getBoundingClientRect();
