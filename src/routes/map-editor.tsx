@@ -350,9 +350,10 @@ function MapEditor() {
               <div key={m.key} className="absolute" style={{ left: m.x * PX, top: m.y * PX, width: m.w * PX, height: m.h * PX }}>
                 <button
                   type="button"
-                  onPointerDown={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
+                   onPointerDown={(e) => {
+                     if (e.button !== 0) return; // let middle-click bubble up to pan the map
+                     e.preventDefault();
+                     e.stopPropagation();
                     const rect = wrapRef.current?.getBoundingClientRect();
                     dragOff.current = rect
                       ? { dx: Math.floor((e.clientX - rect.left) / PX) - m.x, dy: Math.floor((e.clientY - rect.top) / PX) - m.y }
