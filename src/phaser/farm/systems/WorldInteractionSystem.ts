@@ -19,7 +19,8 @@ interface WorldInteractionSystemOptions {
 const BUILDING_TEXTURE: Record<string, string> = {
   house: "building_house",
   market: "building_market",
-  kitchen: "building_kitchen",
+  firepit_1: "building_firepit",
+  firepit_2: "building_firepit",
   blacksmith: "building_blacksmith",
   bank: "building_market",
   summoning_shrine: "building_summoning_shrine",
@@ -27,7 +28,8 @@ const BUILDING_TEXTURE: Record<string, string> = {
 };
 
 const BUILDING_SFX: Record<string, string> = {
-  kitchen: "sfx_kitchen",
+  firepit_1: "sfx_kitchen",
+  firepit_2: "sfx_kitchen",
   blacksmith: "sfx_shop",
   bank: "sfx_bank",
   house: "sfx_home_door",

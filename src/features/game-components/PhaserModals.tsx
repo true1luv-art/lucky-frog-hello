@@ -26,9 +26,14 @@ import { MarketplaceModal }               from "@/features/game-components/marke
 type GameModalKey =
   | "market" | "kitchen" | "blacksmith" | "house";
 
-const GAME_MODAL_KEYS: GameModalKey[] = [
-  "market", "kitchen", "blacksmith", "house",
-];
+/** Phaser building type → modal key. Both firepits open the kitchen modal. */
+const GAME_MODAL_EVENTS: Record<string, GameModalKey> = {
+  market: "market",
+  firepit_1: "kitchen",
+  firepit_2: "kitchen",
+  blacksmith: "blacksmith",
+  house: "house",
+};
 
 // ── SFX bridge ───────────────────────────────────────────────────────────────
 
