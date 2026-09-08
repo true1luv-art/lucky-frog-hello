@@ -63,10 +63,10 @@ const GROUP_LABEL: Record<Group, string> = {
 function buildMarkers(): Marker[] {
   const out: Marker[] = [];
   TREE_POSITIONS.forEach((t) =>
-    out.push({ key: `tree:${t.id}`, group: "trees", id: t.id, x: t.x, y: t.y, w: 1, h: 1, color: "#2f7d32", label: "T", sprite: "/assets/resources/tree_node.png" })
+    out.push({ key: `tree:${t.id}`, group: "trees", id: t.id, x: t.x, y: t.y, w: 2, h: 2, color: "#2f7d32", label: "T", sprite: "/assets/resources/tree_node.png" })
   );
   STONE_POSITIONS.forEach((s) =>
-    out.push({ key: `stone:${s.id}`, group: "stones", id: s.id, x: s.x, y: s.y, w: 1, h: 1, color: "#6b7280", label: "S", sprite: "/assets/resources/stone_node.png" })
+    out.push({ key: `stone:${s.id}`, group: "stones", id: s.id, x: s.x, y: s.y, w: 2, h: 2, color: "#6b7280", label: "S", sprite: "/assets/resources/stone_node.png" })
   );
   PLOT_POSITIONS.forEach((p) =>
     out.push({ key: `plot:${p.id}`, group: "plots", id: p.id, x: p.x, y: p.y, w: 1, h: 1, color: "#a16207", label: "P", sprite: "/assets/land/soil2.png" })
