@@ -269,12 +269,34 @@ function MapEditor() {
 
   return (
     <main className="relative h-screen w-screen overflow-hidden bg-black text-foreground">
-      {/* Full-screen map, fitted like the game view */}
-      <div className="absolute inset-0 flex items-center justify-center">
+      {/* Full-screen map at game zoom; middle-mouse drag pans, wheel zooms */}
+      <div
+        ref={stageRef}
+        className="absolute inset-0 overflow-hidden"
+        style={{ touchAction: "none", cursor: panRef.current ? "grabbing" : "default" }}
+        onPointerDown={(e) => {
+          if (e.button === 1) {
+            e.preventDefault();
+            panRef.current = { x: e.clientX, y: e.clientY, ox: offset.x, oy: offset.y };
+            (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+          }
+        }}
+        onPointerMove={(e) => {
+          const p = panRef.current;
+          if (!p) return;
+          setOffset(clampOffset({ x: p.ox + (e.clientX - p.x), y: p.oy + (e.clientY - p.y) }, mapW, mapH));
+        }}
+        onPointerUp={() => {
+          panRef.current = null;
+        }}
+        onPointerCancel={() => {
+          panRef.current = null;
+        }}
+      >
         <div
           ref={wrapRef}
-          className="relative"
-          style={{ width: mapSize.w * PX, height: mapSize.h * PX }}
+          className="absolute left-0 top-0"
+          style={{ width: mapW, height: mapH, transform: `translate(${offset.x}px, ${offset.y}px)` }}
           onPointerMove={onPointerMove}
           onPointerUp={() => setDragKey(null)}
           onPointerLeave={() => setDragKey(null)}
