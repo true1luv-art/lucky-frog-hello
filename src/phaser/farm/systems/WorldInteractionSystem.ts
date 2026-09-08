@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { GAME_CONFIG, NPC_CONFIG } from "@/phaser/config/GameConfig";
+import { GAME_CONFIG } from "@/phaser/config/GameConfig";
 import type { Player } from "@/phaser/entities/Player";
 import { dispatchUiEvent, isBuildingInRange } from "@/phaser/farm/helpers";
 import type { BuildingZoneNode, NpcNode, PlotNode } from "@/phaser/farm/types";
