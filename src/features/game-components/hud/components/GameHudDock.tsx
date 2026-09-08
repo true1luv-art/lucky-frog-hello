@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import Decimal from "decimal.js-light";
 
 import { Context } from "@/context/GameContext";
