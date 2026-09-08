@@ -112,6 +112,7 @@ export class WorldInteractionSystem {
   }
 
   private spawnBuildings(): void {
+    const seen: Record<string, number> = {};
     for (const zone of this.options.buildingZones) {
       const texture = BUILDING_TEXTURE[zone.type];
       if (texture && this.scene.textures.exists(texture)) {
@@ -120,7 +121,9 @@ export class WorldInteractionSystem {
           .setDisplaySize(zone.width, zone.height)
           .setDepth(12);
       }
-      zone.id = `building_${zone.type}`;
+      // Several zones can share a type (e.g. two firepits) — keep ids unique.
+      const count = (seen[zone.type] = (seen[zone.type] ?? 0) + 1);
+      zone.id = count === 1 ? `building_${zone.type}` : `building_${zone.type}_${count}`;
       this.options.buildings[zone.id] = zone;
     }
   }

@@ -50,7 +50,7 @@ export const BUILDING_CONFIG: Record<string, BuildingConfig> = {
     enabled: true,
   },
   kitchen: {
-    displayName: "Kitchen",
+    displayName: "Firepit",
     enabled: true,
   },
   barn: {
