@@ -118,8 +118,10 @@ function MapEditor() {
   const [zoom, setZoom] = useState(2);
   const [drawerOpen, setDrawerOpen] = useState(true);
   const [showGrid, setShowGrid] = useState(true);
+  const [copied, setCopied] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
+  const dragOff = useRef({ dx: 0, dy: 0 });
 
   const PX = PX_BASE * zoom;
 
@@ -166,18 +168,52 @@ function MapEditor() {
       if (!dragKey) return;
       const rect = wrapRef.current?.getBoundingClientRect();
       if (!rect) return;
-      const tx = Math.max(0, Math.floor((e.clientX - rect.left) / PX));
-      const ty = Math.max(0, Math.floor((e.clientY - rect.top) / PX));
+      const gx = Math.floor((e.clientX - rect.left) / PX) - dragOff.current.dx;
+      const gy = Math.floor((e.clientY - rect.top) / PX) - dragOff.current.dy;
       setMarkers((prev) =>
         prev.map((m) => {
           if (m.key !== dragKey) return m;
+          const tx = Math.min(Math.max(0, gx), Math.max(0, mapSize.w - m.w));
+          const ty = Math.min(Math.max(0, gy), Math.max(0, mapSize.h - m.h));
           if (m.x !== tx || m.y !== ty) setMoved(true);
           return { ...m, x: tx, y: ty };
         })
       );
     },
-    [dragKey, PX]
+    [dragKey, PX, mapSize]
   );
+
+  // Arrow keys nudge the selected asset by one tile.
+  useEffect(() => {
+    if (!selected) return;
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA")) return;
+      const d: Record<string, [number, number]> = {
+        ArrowLeft: [-1, 0],
+        ArrowRight: [1, 0],
+        ArrowUp: [0, -1],
+        ArrowDown: [0, 1],
+      };
+      const move = d[e.key];
+      if (!move) return;
+      e.preventDefault();
+      setMarkers((prev) =>
+        prev.map((m) =>
+          m.key === selected
+            ? {
+                ...m,
+                x: Math.min(Math.max(0, m.x + move[0]), Math.max(0, mapSize.w - m.w)),
+                y: Math.min(Math.max(0, m.y + move[1]), Math.max(0, mapSize.h - m.h)),
+              }
+            : m
+        )
+      );
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [selected, mapSize]);
+
 
   const groups = useMemo(() => Array.from(new Set(markers.map((m) => m.group))), [markers]);
 
@@ -206,6 +242,13 @@ function MapEditor() {
 
   const patch = useCallback((key: string, field: "x" | "y" | "w" | "h", value: number) => {
     setMarkers((prev) => prev.map((m) => (m.key === key ? { ...m, [field]: Math.max(field === "w" || field === "h" ? 1 : 0, value) } : m)));
+  }, []);
+
+  const focusMarker = useCallback((key: string) => {
+    setSelected(key);
+    window.requestAnimationFrame(() => {
+      document.querySelector(`[data-marker="${key}"]`)?.scrollIntoView({ block: "center", inline: "center", behavior: "smooth" });
+    });
   }, []);
 
   return (
@@ -242,8 +285,16 @@ function MapEditor() {
             ))}
           </div>
           <div className="ml-auto flex gap-2">
-            <button type="button" onClick={() => void navigator.clipboard.writeText(json)} className="rounded border border-border px-3 py-1 text-xs">
-              Copy JSON
+            <button
+              type="button"
+              onClick={() => {
+                void navigator.clipboard.writeText(json);
+                setCopied(true);
+                window.setTimeout(() => setCopied(false), 1500);
+              }}
+              className="rounded border border-border px-3 py-1 text-xs"
+            >
+              {copied ? "Copied!" : "Copy JSON"}
             </button>
             <button type="button" onClick={() => setMarkers(buildMarkers())} className="rounded border border-border px-3 py-1 text-xs">
               Reset
@@ -287,12 +338,26 @@ function MapEditor() {
               .map((m) => {
                 const active = selected === m.key;
                 return (
-                  <div key={m.key} className="absolute" style={{ left: m.x * PX, top: m.y * PX, width: m.w * PX, height: m.h * PX }}>
+                  <div
+                    key={m.key}
+                    data-marker={m.key}
+                    className="absolute"
+                    style={{ left: m.x * PX, top: m.y * PX, width: m.w * PX, height: m.h * PX }}
+                  >
                     <button
                       type="button"
                       onPointerDown={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
+                        const rect = wrapRef.current?.getBoundingClientRect();
+                        if (rect) {
+                          dragOff.current = {
+                            dx: Math.floor((e.clientX - rect.left) / PX) - m.x,
+                            dy: Math.floor((e.clientY - rect.top) / PX) - m.y,
+                          };
+                        } else {
+                          dragOff.current = { dx: 0, dy: 0 };
+                        }
                         setDragKey(m.key);
                         setMoved(false);
                         setSelected(m.key);
@@ -380,22 +445,48 @@ function MapEditor() {
                 <div className="sticky top-0 bg-muted px-2 py-1 text-xs font-semibold uppercase">{g}</div>
                 {markers
                   .filter((m) => m.group === g)
-                  .map((m) => (
-                    <button
-                      key={m.key}
-                      type="button"
-                      onClick={() => setSelected(m.key)}
-                      className={`flex w-full items-center gap-2 border-b border-border px-2 py-1 text-left text-[11px] ${
-                        selected === m.key ? "bg-accent" : ""
-                      }`}
-                    >
-                      <span className="inline-block h-3 w-3 shrink-0 rounded-sm" style={{ background: m.color }} />
-                      <span className="flex-1 truncate font-mono">{m.id}</span>
-                      <span className="font-mono text-muted-foreground">
-                        x{m.x} y{m.y} w{m.w} h{m.h}
-                      </span>
-                    </button>
-                  ))}
+                  .map((m) => {
+                    const offMap = m.x + m.w > mapSize.w || m.y + m.h > mapSize.h;
+                    return (
+                      <div
+                        key={m.key}
+                        className={`flex w-full items-center gap-2 border-b border-border px-2 py-1 text-left text-[11px] ${
+                          selected === m.key ? "bg-accent" : ""
+                        }`}
+                      >
+                        <button type="button" onClick={() => focusMarker(m.key)} className="flex min-w-0 flex-1 items-center gap-2 text-left">
+                          <span className="inline-block h-3 w-3 shrink-0 rounded-sm" style={{ background: m.color }} />
+                          <span className="flex-1 truncate font-mono">{m.id}</span>
+                          <span className="font-mono text-muted-foreground">
+                            x{m.x} y{m.y} w{m.w} h{m.h}
+                          </span>
+                        </button>
+                        {offMap ? (
+                          <button
+                            type="button"
+                            title="This asset sits outside the map — move it inside"
+                            onClick={() => {
+                              setMarkers((prev) =>
+                                prev.map((n) =>
+                                  n.key === m.key
+                                    ? {
+                                        ...n,
+                                        x: Math.min(n.x, Math.max(0, mapSize.w - n.w)),
+                                        y: Math.min(n.y, Math.max(0, mapSize.h - n.h)),
+                                      }
+                                    : n
+                                )
+                              );
+                              focusMarker(m.key);
+                            }}
+                            className="shrink-0 rounded border border-border px-1 text-[10px] text-destructive"
+                          >
+                            off-map
+                          </button>
+                        ) : null}
+                      </div>
+                    );
+                  })}
               </div>
             ))}
           </div>
