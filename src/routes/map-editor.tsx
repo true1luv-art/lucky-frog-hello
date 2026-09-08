@@ -331,12 +331,26 @@ function MapEditor() {
               .map((m) => {
                 const active = selected === m.key;
                 return (
-                  <div key={m.key} className="absolute" style={{ left: m.x * PX, top: m.y * PX, width: m.w * PX, height: m.h * PX }}>
+                  <div
+                    key={m.key}
+                    data-marker={m.key}
+                    className="absolute"
+                    style={{ left: m.x * PX, top: m.y * PX, width: m.w * PX, height: m.h * PX }}
+                  >
                     <button
                       type="button"
                       onPointerDown={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
+                        const rect = wrapRef.current?.getBoundingClientRect();
+                        if (rect) {
+                          dragOff.current = {
+                            dx: Math.floor((e.clientX - rect.left) / PX) - m.x,
+                            dy: Math.floor((e.clientY - rect.top) / PX) - m.y,
+                          };
+                        } else {
+                          dragOff.current = { dx: 0, dy: 0 };
+                        }
                         setDragKey(m.key);
                         setMoved(false);
                         setSelected(m.key);
