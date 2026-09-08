@@ -12,7 +12,6 @@ import { ModalShell, ModalTitleBar, NavRail, ActionDock, StatChip, SectionLabel 
 import { InnerPanel } from "@/components/ui/Panel";
 import { Button } from "@/components/ui/Button";
 
-import "bootstrap/dist/css/bootstrap.min.css";
 
 export const Route = createFileRoute("/test-modals")({
   head: () => ({
