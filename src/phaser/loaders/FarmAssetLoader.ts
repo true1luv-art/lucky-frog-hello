@@ -62,7 +62,7 @@ export const FarmAssetLoader = {
     scene.load.spritesheet('animal_sheep',   'assets/phaser/sprites/animals/spr_deco_sheep_01_strip4.png',   { frameWidth: 32, frameHeight: 32 })
     scene.load.spritesheet('animal_cow',     'assets/phaser/sprites/animals/spr_deco_cow_strip4.png',        { frameWidth: 32, frameHeight: 32 })
 
-    scene.load.spritesheet('npc_blacksmith', 'assets/npcs/blacksmith.png', { frameWidth: 96, frameHeight: 64 })
+    scene.load.spritesheet('npc_blacksmith', 'assets/npcs/blacksmith.png', { frameWidth: 84, frameHeight: 56 })
 
     scene.load.image('icon_player',  'assets/icons/player.png')
     scene.load.image('icon_plant',   'assets/icons/plant.png')
