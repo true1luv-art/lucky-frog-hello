@@ -23,6 +23,8 @@ export const Route = createFileRoute("/map-editor")({
 });
 
 const TILE = 16;
+/** Match the in-game camera zoom (GAME_CONFIG.ZOOM). */
+const GAME_ZOOM = 4;
 
 type Group = "trees" | "stones" | "plots" | "buildings" | "npcs";
 
