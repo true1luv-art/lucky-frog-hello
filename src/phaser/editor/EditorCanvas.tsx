@@ -58,7 +58,6 @@ export default function EditorCanvas() {
   const [selected, setSelected] = useState<EditorMarker | null>(null);
   const [camera, setCamera] = useState({ zoom: 4, tileX: 0, tileY: 0 });
   const [counts, setCounts] = useState<Record<AnimalKind, number>>({ chicken: 0, cow: 0, sheep: 0 });
-  const [walking, setWalking] = useState(true);
   const [grid, setGrid] = useState(true);
 
   const [drawer, setDrawer] = useState<Drawer | null>(null);
