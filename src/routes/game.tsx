@@ -40,9 +40,13 @@ function Loading() {
 function GamePage() {
   const navigate = useNavigate();
   const username = useSession((s) => s.username);
-  const [hydrated, setHydrated] = useState(() => useSession.persist.hasHydrated());
+  const [hydrated, setHydrated] = useState(false);
 
-  useEffect(() => useSession.persist.onFinishHydration(() => setHydrated(true)), []);
+  useEffect(() => {
+    const unsubscribe = useSession.persist.onFinishHydration(() => setHydrated(true));
+    void useSession.persist.rehydrate().then(() => setHydrated(true));
+    return unsubscribe;
+  }, []);
 
   useEffect(() => {
     if (hydrated && !username) void navigate({ to: "/" });
